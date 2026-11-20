@@ -1,13 +1,25 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace PhoneMirror.Core;
+
+/// <summary>Couleur des indicateurs de clic.</summary>
+public enum ClickColor { Turquoise, Rouge, Orange, Jaune, Vert, Violet, Blanc, Gris }
+
+/// <summary>Taille des indicateurs de clic.</summary>
+public enum ClickSize { Petite, Moyenne, Grande }
 
 /// <summary>
 /// Réglages modifiables depuis l'interface, enregistrés dans %APPDATA%\PhoneMirror\settings.json.
 /// </summary>
 public sealed record UserSettings
 {
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    // Énumérations écrites en toutes lettres (« Rouge », « Grande ») : fichier lisible et modifiable à la main.
+    internal static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     public static string FilePath { get; } = Path.Combine(AppLog.DataDirectory, "settings.json");
 
@@ -27,8 +39,15 @@ public sealed record UserSettings
     /// <summary>Éteint l'écran du téléphone pendant la recopie (batterie, discrétion).</summary>
     public bool TurnScreenOff { get; init; }
 
-    /// <summary>Onde affichée à chaque clic sur l'image du téléphone (partage d'écran, démonstrations).</summary>
+    /// <summary>Indicateur affiché à chaque clic sur l'image du téléphone (partage d'écran, démonstrations).</summary>
     public bool ShowClicks { get; init; } = true;
+
+    /// <summary>Seulement le petit point au centre, sans l'onde.</summary>
+    public bool ClickDotOnly { get; init; }
+
+    public ClickColor ClickColor { get; init; } = ClickColor.Turquoise;
+
+    public ClickSize ClickSize { get; init; } = ClickSize.Moyenne;
 
     /// <summary>Fenêtre toujours au premier plan.</summary>
     public bool AlwaysOnTop { get; init; }
@@ -82,6 +101,8 @@ public sealed record UserSettings
         VideoBitRateMbps = Math.Clamp(VideoBitRateMbps, 1, 100),
         MaxFps = Math.Clamp(MaxFps, 1, 240),
         Window = Window is { Width: > 0, Height: > 0 } ? Window : null,
+        ClickColor = Enum.IsDefined(ClickColor) ? ClickColor : ClickColor.Turquoise,
+        ClickSize = Enum.IsDefined(ClickSize) ? ClickSize : ClickSize.Moyenne,
     };
 }
 

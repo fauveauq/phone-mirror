@@ -54,11 +54,13 @@ public partial class MainWindow : Window
         var ripples = new ClickRippleLayer(ClickLayer);
         VideoImage.PreviewMouseLeftButtonDown += (_, e) =>
         {
-            if (_settings.ShowClicks && _session?.Control != null) ripples.Show(e.GetPosition(ClickLayer));
+            if (_settings.ShowClicks && _session?.Control != null)
+                ripples.Show(e.GetPosition(ClickLayer), ClickAppearance.From(_settings));
         };
         VideoImage.PreviewMouseRightButtonDown += (_, e) =>
         {
-            if (_settings.ShowClicks && _session?.Control != null) ripples.ShowInward(e.GetPosition(ClickLayer));
+            if (_settings.ShowClicks && _session?.Control != null)
+                ripples.ShowInward(e.GetPosition(ClickLayer), ClickAppearance.From(_settings));
         };
 
         _fullScreen = new FullScreenToggle(this);

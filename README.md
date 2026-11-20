@@ -88,7 +88,7 @@ Valeurs possibles : un dépôt GitHub (`https://github.com/…`), une adresse we
   - son du téléphone sur le PC (activé par défaut ; pendant la recopie, le son ne sort plus du téléphone) ;
   - éteindre l'écran du téléphone pendant la recopie ;
   - fenêtre toujours au premier plan ;
-  - montrer les clics par une onde (activé par défaut), pratique en partage d'écran : elle s'élargit pour un toucher (clic gauche) et se referme pour un retour (clic droit).
+  - montrer les clics (activé par défaut), pratique en partage d'écran : une onde s'élargit pour un toucher (clic gauche) et se referme pour un retour (clic droit). Style (onde et point, ou point seul), couleur (turquoise, rouge, orange, jaune, vert, violet, blanc, gris) et taille réglables.
 - **F11** : plein écran.
 - **Glisser-déposer** un fichier sur la fenêtre : un APK est installé, tout autre fichier est copié dans le dossier Téléchargements du téléphone.
 - La position et la taille de la fenêtre sont mémorisées.

@@ -1,6 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using PhoneMirror.Core;
+using PhoneMirror.UI;
 
 namespace PhoneMirror;
 
@@ -31,8 +34,36 @@ public partial class SettingsWindow : Window
         ScreenOffBox.IsChecked = current.TurnScreenOff;
         TopmostBox.IsChecked = current.AlwaysOnTop;
         ShowClicksBox.IsChecked = current.ShowClicks;
+        FillClickOptions(current);
 
         Loaded += async (_, _) => await LoadDevicesAsync();
+    }
+
+    private void FillClickOptions(UserSettings current)
+    {
+        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Onde et point", Tag = false });
+        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Point seul", Tag = true });
+        ClickStyleBox.SelectedIndex = current.ClickDotOnly ? 1 : 0;
+
+        foreach (ClickColor color in Enum.GetValues<ClickColor>())
+        {
+            // Pastille de la couleur devant son nom.
+            var swatch = new Ellipse
+            {
+                Width = 12, Height = 12, Margin = new Thickness(0, 0, 8, 0),
+                Fill = new SolidColorBrush(ClickAppearance.ToColor(color)),
+                Stroke = Brushes.Gray, StrokeThickness = 0.5,
+            };
+            var content = new StackPanel { Orientation = Orientation.Horizontal };
+            content.Children.Add(swatch);
+            content.Children.Add(new TextBlock { Text = color.ToString(), Foreground = Brushes.Black });
+            ClickColorBox.Items.Add(new ComboBoxItem { Content = content, Tag = color });
+        }
+        ClickColorBox.SelectedItem = ClickColorBox.Items.Cast<ComboBoxItem>().First(i => (ClickColor)i.Tag == current.ClickColor);
+
+        foreach (ClickSize size in Enum.GetValues<ClickSize>())
+            ClickSizeBox.Items.Add(new ComboBoxItem { Content = size.ToString(), Tag = size });
+        ClickSizeBox.SelectedItem = ClickSizeBox.Items.Cast<ComboBoxItem>().First(i => (ClickSize)i.Tag == current.ClickSize);
     }
 
     /// <summary>Remplit une liste ; la valeur actuelle est ajoutée si elle n'y figure pas (fichier modifié à la main).</summary>
@@ -95,6 +126,9 @@ public partial class SettingsWindow : Window
             TurnScreenOff = ScreenOffBox.IsChecked == true,
             AlwaysOnTop = TopmostBox.IsChecked == true,
             ShowClicks = ShowClicksBox.IsChecked == true,
+            ClickDotOnly = (bool)((ComboBoxItem)ClickStyleBox.SelectedItem).Tag,
+            ClickColor = (ClickColor)((ComboBoxItem)ClickColorBox.SelectedItem).Tag,
+            ClickSize = (ClickSize)((ComboBoxItem)ClickSizeBox.SelectedItem).Tag,
         };
         DialogResult = true;
     }

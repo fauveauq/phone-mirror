@@ -58,8 +58,32 @@
                   Content="Éteindre l'écran du téléphone pendant la recopie" />
         <CheckBox x:Name="TopmostBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
                   Content="Fenêtre toujours au premier plan" />
-        <CheckBox x:Name="ShowClicksBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
-                  Content="Montrer les clics par une onde (partage d'écran, démonstrations)" />
+
+        <!-- Indicateurs de clic -->
+        <TextBlock Margin="0,18,0,2" Text="Clics" FontWeight="SemiBold" />
+        <CheckBox x:Name="ShowClicksBox" Margin="0,4,0,0" Foreground="#FFE6E8EE"
+                  Content="Montrer les clics (partage d'écran, démonstrations)" />
+        <Grid Margin="22,4,0,0" IsEnabled="{Binding IsChecked, ElementName=ShowClicksBox}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Style" />
+            <ComboBox x:Name="ClickStyleBox" Grid.Row="0" Grid.Column="2" />
+
+            <TextBlock Grid.Row="1" Text="Couleur" />
+            <ComboBox x:Name="ClickColorBox" Grid.Row="1" Grid.Column="2" />
+
+            <TextBlock Grid.Row="2" Text="Taille" />
+            <ComboBox x:Name="ClickSizeBox" Grid.Row="2" Grid.Column="2" />
+        </Grid>
 
         <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="12" Foreground="#FF9AA0AC"
                    Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand le téléphone, la qualité ou le son changent." />

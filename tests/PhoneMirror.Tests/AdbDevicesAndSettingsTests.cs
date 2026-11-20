@@ -54,6 +54,28 @@ public class UserSettingsTests
     }
 
     [Fact]
+    public void Click_options_are_saved_in_words_and_read_back()
+    {
+        var settings = new UserSettings { ClickColor = ClickColor.Gris, ClickSize = ClickSize.Grande, ClickDotOnly = true };
+
+        string json = System.Text.Json.JsonSerializer.Serialize(settings, UserSettings.JsonOptions);
+        UserSettings? read = System.Text.Json.JsonSerializer.Deserialize<UserSettings>(json, UserSettings.JsonOptions);
+
+        Assert.Contains("\"Gris\"", json);
+        Assert.Contains("\"Grande\"", json);
+        Assert.Equal(settings, read);
+    }
+
+    [Fact]
+    public void Normalized_replaces_unknown_click_options()
+    {
+        UserSettings settings = new UserSettings { ClickColor = (ClickColor)99, ClickSize = (ClickSize)(-1) }.Normalized();
+
+        Assert.Equal(ClickColor.Turquoise, settings.ClickColor);
+        Assert.Equal(ClickSize.Moyenne, settings.ClickSize);
+    }
+
+    [Fact]
     public void Normalized_keeps_native_resolution()
     {
         Assert.Equal(0, new UserSettings { MaxSize = 0 }.Normalized().MaxSize);
