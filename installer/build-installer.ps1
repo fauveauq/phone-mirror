@@ -4,15 +4,18 @@
 
 .DESCRIPTION
     Produit installer\out\PhoneMirror-win-Setup.exe (à transmettre aux collègues) et les paquets
-    de mise à jour. Avec -Publish, crée en plus une release GitHub : les applications installées
-    la téléchargent alors automatiquement.
+    de mise à jour. Avec -Publish, crée en plus une release GitHub ; avec -SharePath, copie la
+    version dans un dossier réseau. Les applications installées la téléchargent alors automatiquement
+    (source choisie par « UpdateSource » dans %APPDATA%\PhoneMirror\settings.json, GitHub par défaut).
 
 .EXAMPLE
     .\installer\build-installer.ps1
     .\installer\build-installer.ps1 -Publish
+    .\installer\build-installer.ps1 -SharePath \\serveur\partage\PhoneMirror
 #>
 param(
-    [switch] $Publish
+    [switch] $Publish,
+    [string] $SharePath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -55,6 +58,11 @@ try {
             dotnet vpk download github --repoUrl $repoUrl --token (gh auth token) --outputDir $outDir
         }
     }
+    if ($SharePath -and (Test-Path $SharePath)) {
+        Invoke-Step 'Récupération des versions précédentes (dossier réseau)' {
+            dotnet vpk download local --path $SharePath --outputDir $outDir
+        }
+    }
 
     Invoke-Step 'Empaquetage Velopack' {
         dotnet vpk pack --packId PhoneMirror --packVersion $version --packTitle 'Phone Mirror' `
@@ -65,6 +73,11 @@ try {
         Invoke-Step 'Publication de la release GitHub' {
             dotnet vpk upload github --repoUrl $repoUrl --token (gh auth token) --outputDir $outDir `
                 --publish --releaseName "Phone Mirror $version" --tag "v$version"
+        }
+    }
+    if ($SharePath) {
+        Invoke-Step "Copie vers $SharePath" {
+            dotnet vpk upload local --path $SharePath --outputDir $outDir
         }
     }
 

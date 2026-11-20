@@ -375,7 +375,8 @@ public partial class MainWindow : Window
 
     private async Task CheckForUpdatesAsync()
     {
-        string? version = await Task.Run(AppUpdater.DownloadPendingUpdateAsync);
+        string? source = _settings.UpdateSource;
+        string? version = await Task.Run(() => AppUpdater.DownloadPendingUpdateAsync(source));
         if (version != null)
             ShowToast($"La version {version} sera installée à la fermeture de Phone Mirror.");
     }

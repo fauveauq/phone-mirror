@@ -12,7 +12,8 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 
 - PC sous Windows, téléphone Android relié en USB (débogage USB activé).
 - .NET 10, WPF, C#. Exécution : `dotnet run -c Release`. Tests : `dotnet test PhoneMirror.slnx` (xUnit, `tests/PhoneMirror.Tests`).
-- Dépôt GitHub privé : https://github.com/fauveauq/phone-mirror (branche `main`).
+- Dépôt GitHub **public** : <https://github.com/fauveauq/phone-mirror> (branche `main`). Rien de secret ni d'interne dans les fichiers ; commits signés avec l'adresse noreply GitHub (configurée dans ce dépôt), jamais l'e-mail professionnel.
+- Source des mises à jour : `UpdateSource` dans `settings.json` (null = releases GitHub ; sinon autre dépôt, adresse web ou dossier réseau). Publication : `build-installer.ps1 -Publish` (GitHub) ou `-SharePath \\serveur\partage` (réseau). Augmenter `<Version>` avant chaque publication.
 - Installeur : `installer/build-installer.ps1` (Velopack, outil local `vpk` dans `dotnet-tools.json`) → `installer/out/PhoneMirror-win-Setup.exe`, installation par utilisateur dans `%LOCALAPPDATA%\PhoneMirror`. Mises à jour automatiques depuis les releases GitHub (`Core/AppUpdater.cs`, `-Publish`). Point d'entrée `Program.cs` (Velopack avant WPF).
 - Données utilisateur dans `%APPDATA%\PhoneMirror` (réglages, journal), jamais dans `%LOCALAPPDATA%\PhoneMirror` (dossier d'installation effacé à la désinstallation).
 - Pas d'iPhone à prendre en charge.

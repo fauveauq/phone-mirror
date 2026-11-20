@@ -27,6 +27,12 @@ public sealed record UserSettings
     /// <summary>Fenêtre toujours au premier plan.</summary>
     public bool AlwaysOnTop { get; init; }
 
+    /// <summary>
+    /// Source des mises à jour : null = releases GitHub du projet ; sinon un autre dépôt GitHub,
+    /// une adresse web ou un dossier réseau (\\serveur\partage\PhoneMirror). Modifiable dans le fichier.
+    /// </summary>
+    public string? UpdateSource { get; init; }
+
     /// <summary>Position et taille de la fenêtre à la dernière fermeture.</summary>
     public WindowBounds? Window { get; init; }
 
@@ -64,6 +70,7 @@ public sealed record UserSettings
     internal UserSettings Normalized() => this with
     {
         DeviceSerial = string.IsNullOrWhiteSpace(DeviceSerial) ? null : DeviceSerial.Trim(),
+        UpdateSource = string.IsNullOrWhiteSpace(UpdateSource) ? null : UpdateSource.Trim(),
         MaxSize = MaxSize <= 0 ? 0 : Math.Clamp(MaxSize, 320, 4096),
         VideoBitRateMbps = Math.Clamp(VideoBitRateMbps, 1, 100),
         MaxFps = Math.Clamp(MaxFps, 1, 240),

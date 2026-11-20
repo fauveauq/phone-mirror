@@ -63,9 +63,18 @@ dotnet test PhoneMirror.slnx   # tests unitaires (protocole, réglages, adb)
 ```
 .\installer\build-installer.ps1            # installer\out\PhoneMirror-win-Setup.exe
 .\installer\build-installer.ps1 -Publish   # crée aussi une release GitHub (mises à jour automatiques)
+.\installer\build-installer.ps1 -SharePath \\serveur\partage\PhoneMirror   # ou publie sur un dossier réseau
 ```
 
-Le script lance les tests, publie une version autonome (avec le runtime .NET), puis l'empaquette avec [Velopack](https://velopack.io). Avant chaque `-Publish`, augmenter `<Version>` dans `PhoneMirror.csproj`. Les applications installées vérifient les releases GitHub au démarrage, téléchargent la nouvelle version et l'installent à la fermeture. Les releases doivent être accessibles aux utilisateurs : ce n'est pas le cas si le dépôt est privé.
+Le script lance les tests, publie une version autonome (avec le runtime .NET), puis l'empaquette avec [Velopack](https://velopack.io). Avant chaque publication, augmenter `<Version>` dans `PhoneMirror.csproj`.
+
+Les applications installées vérifient les mises à jour au démarrage, téléchargent la nouvelle version en arrière-plan et l'installent à la fermeture. La source est par défaut les releases GitHub de ce dépôt. Pour en changer, renseigner `UpdateSource` dans `%APPDATA%\PhoneMirror\settings.json` :
+
+```json
+"UpdateSource": "\\\\serveur\\partage\\PhoneMirror"
+```
+
+Valeurs possibles : un dépôt GitHub (`https://github.com/…`), une adresse web contenant les fichiers produits par Velopack, ou un dossier local ou réseau.
 
 ## Utilisation
 
