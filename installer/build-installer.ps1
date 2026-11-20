@@ -34,7 +34,7 @@ Push-Location $root
 try {
     # Dépendances non versionnées (voir README) : sans elles l'application ne fonctionnerait pas.
     foreach ($required in 'third_party\adb\adb.exe', 'third_party\scrcpy-server', 'third_party\ffmpeg\avcodec-63.dll') {
-        if (-not (Test-Path $required)) { throw "Fichier manquant : $required. Voir la section Installation du README." }
+        if (-not (Test-Path $required)) { throw "Fichier manquant : $required. Voir DEVELOPMENT.md." }
     }
 
     $version = ([xml](Get-Content 'PhoneMirror.csproj')).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1

@@ -1,130 +1,146 @@
 # Phone Mirror
 
-Recopie l'écran d'un téléphone Android sur un PC Windows, avec une latence visée sous les 100 ms en USB.
+**Affiche et pilote l'écran de votre téléphone Android sur votre PC Windows**, par câble USB, avec la souris et le clavier du PC.
 
-## Fonctionnement
+- Image fluide (jusqu'à 60 i/s, ou plus) et quasi instantanée : moins d'un dixième de seconde de décalage.
+- Le son du téléphone sort sur le PC (Android 11 ou plus récent).
+- Souris, clavier et copier-coller entre le PC et le téléphone.
+- Pratique en réunion ou en démonstration : chaque clic est signalé par une petite onde visible par les autres participants.
+- Rien à installer sur le téléphone, aucun compte, aucune connexion Internet : tout passe par le câble.
+- Mises à jour automatiques.
 
-1. **Téléphone** : le serveur open source de scrcpy (licence Apache 2.0) est copié et lancé via adb, sans rien installer. Il capture l'écran et l'encode en H.264 avec l'encodeur matériel du téléphone.
-2. **Transport** : un tunnel `adb forward` en USB transporte le flux brut, sans mise en mémoire tampon.
-3. **PC** : FFmpeg décode chaque image dès son arrivée (mode faible latence), puis la fenêtre WPF affiche toujours la plus récente à chaque rafraîchissement de l'écran. Si l'affichage prend du retard, les images en trop sont sautées au lieu de s'accumuler.
-4. **Son** (Android 11 ou plus récent) : le téléphone envoie le son en Opus, décodé par FFmpeg et joué par WASAPI (NAudio) avec un retard plafonné à 150 ms pour rester synchronisé avec l'image.
-5. **Contrôle** : une connexion de plus transmet la souris, le clavier et le presse-papiers au téléphone.
+**[⬇ Télécharger l'installeur (Windows 10/11, 64 bits)](https://github.com/fauveauq/phone-mirror/releases/latest/download/PhoneMirror-win-Setup.exe)**. Les nouveautés de chaque version sont listées sur la [page des versions](https://github.com/fauveauq/phone-mirror/releases).
 
-| Fichier | Rôle |
-|---|---|
-| `Core/AdbRunner.cs` | Exécution des commandes adb |
-| `Core/AdbDevices.cs` | Liste des appareils branchés |
-| `Core/DeviceWatcher.cs` | Attente du téléphone pour la reconnexion automatique |
-| `Core/ScrcpyServer.cs` | Déploiement et lancement du serveur sur le téléphone |
-| `Core/ScrcpyConnector.cs` | Ouverture des connexions vidéo et contrôle |
-| `Core/ScrcpyVideoStream.cs` | Lecture du protocole vidéo de scrcpy |
-| `Core/ScrcpyControlChannel.cs` | Messages de contrôle (toucher, touches, texte, presse-papiers) |
-| `Core/MediaPacketReader.cs` | Lecture des paquets vidéo et audio |
-| `Core/ScrcpyAudioStream.cs`, `Core/AudioPipeline.cs` | Flux audio et sa boucle de lecture |
-| `Core/OpusDecoder.cs`, `Core/AudioPlayer.cs` | Décodage Opus (FFmpeg) et lecture WASAPI (NAudio) |
-| `Core/H264Decoder.cs` | Décodage FFmpeg et conversion en BGRA |
-| `Core/FrameExchange.cs` | Triple tampon entre décodage et affichage |
-| `Core/MirrorSession.cs` | Orchestration d'une session |
-| `Core/UserSettings.cs` | Réglages enregistrés |
-| `Core/AppLog.cs` | Journal de diagnostic |
-| `Input/*.cs` | Souris, clavier et raccourcis transmis au téléphone |
-| `MainWindow.xaml(.cs)` | Fenêtre principale |
-| `SettingsWindow.xaml(.cs)` | Fenêtre de réglages |
+---
 
-## Installation pour les utilisateurs
+## Installation
 
-1. Lancer `PhoneMirror-win-Setup.exe`. L'installation se fait pour l'utilisateur courant, sans droits administrateur et sans rien d'autre à installer. Elle crée un raccourci « Phone Mirror » dans le menu Démarrer.
-2. Sur le téléphone : activer les options pour les développeurs et le **débogage USB**, brancher le câble et accepter l'autorisation qui s'affiche.
+### 1. Sur le PC
 
-Windows SmartScreen peut avertir que l'éditeur est inconnu, car l'installeur n'est pas signé : « Informations complémentaires » puis « Exécuter quand même ».
+1. Téléchargez [PhoneMirror-win-Setup.exe](https://github.com/fauveauq/phone-mirror/releases/latest/download/PhoneMirror-win-Setup.exe) et lancez-le.
+2. Si Windows affiche « Windows a protégé votre ordinateur », cliquez sur **Informations complémentaires**, puis **Exécuter quand même**. Ce message s'affiche parce que l'installeur n'est pas signé numériquement.
+3. L'installation dure quelques secondes. Elle ne demande **pas de droits administrateur**, et Phone Mirror s'ouvre tout seul ensuite. Pour le relancer plus tard, cherchez **Phone Mirror** dans le menu Démarrer.
 
-Désinstallation : Paramètres Windows > Applications. Les réglages restent dans `%APPDATA%\PhoneMirror`.
+Aucun autre logiciel n'est nécessaire : tout ce qu'il faut est fourni avec l'installeur.
 
-## Développement
+### 2. Sur le téléphone (une seule fois)
 
-Il faut le **SDK .NET 10** (ou Visual Studio 2026), puis trois dépendances à placer dans `third_party` :
+Le PC a besoin de l'autorisation du téléphone, via le **débogage USB** :
 
-```
-third_party/
-├── adb/            adb.exe, AdbWinApi.dll, AdbWinUsbApi.dll
-├── ffmpeg/         avcodec-*.dll, avutil-*.dll, swscale-*.dll, etc.
-└── scrcpy-server   (fichier sans extension)
-```
+1. **Activez les options pour les développeurs.** Ouvrez **Paramètres › À propos du téléphone** (sur Samsung : **Paramètres › À propos du téléphone › Informations sur le logiciel**). Touchez **7 fois** la ligne **Numéro de build**, puis saisissez votre code si le téléphone le demande. Le message « Vous êtes maintenant développeur » s'affiche.
+2. **Activez le débogage USB.** Ouvrez **Paramètres › Options pour les développeurs** (sur certains téléphones : **Paramètres › Système › Options pour les développeurs**) et activez **Débogage USB**.
+   - Sur Xiaomi, Redmi ou POCO, activez aussi **Débogage USB (paramètres de sécurité)**, sinon la souris et le clavier ne fonctionnent pas.
+3. **Branchez le téléphone** au PC avec un câble USB de données (certains câbles de charge ne transportent pas les données).
+4. Sur le téléphone, la question **« Autoriser le débogage USB ? »** apparaît. Cochez **Toujours autoriser sur cet ordinateur**, puis touchez **Autoriser**.
 
-- **adb** : contenu de « SDK Platform-Tools for Windows » (site développeurs Android). Si adb est déjà dans le PATH, ce dossier est facultatif.
-- **scrcpy-server** : sur la page des releases GitHub de scrcpy, télécharger `scrcpy-server-v5.0.1` et le renommer `scrcpy-server`. La version doit correspondre exactement à `ServerVersion` dans `Core/MirrorOptions.cs`.
-- **FFmpeg** : la build **LGPL** « shared » 64 bits de FFmpeg 9.0 de BtbN (`ffmpeg-n9.0-latest-win64-lgpl-shared-9.0.zip`, releases GitHub de BtbN/FFmpeg-Builds). Seuls `avcodec-63.dll`, `avutil-61.dll`, `swscale-10.dll` et `swresample-7.dll` de son dossier `bin` sont nécessaires, plus `LICENSE.txt` renommé `LICENSE-FFmpeg.txt`. La version majeure des DLL doit correspondre à celle des paquets `FFmpeg.AutoGen` du `.csproj`.
+L'écran du téléphone apparaît alors dans la fenêtre Phone Mirror. Les fois suivantes, il suffit de brancher le câble.
 
-Puis :
-
-```
-dotnet run -c Release          # lancer l'application
-dotnet test PhoneMirror.slnx   # tests unitaires (protocole, réglages, adb)
-```
-
-### Construire l'installeur
-
-```
-.\installer\build-installer.ps1            # installer\out\PhoneMirror-win-Setup.exe
-.\installer\build-installer.ps1 -Publish   # crée aussi une release GitHub (mises à jour automatiques)
-.\installer\build-installer.ps1 -SharePath \\serveur\partage\PhoneMirror   # ou publie sur un dossier réseau
-```
-
-Le script lance les tests, publie une version autonome (avec le runtime .NET), puis l'empaquette avec [Velopack](https://velopack.io). Avant chaque publication, augmenter `<Version>` dans `PhoneMirror.csproj`.
-
-Les applications installées vérifient les mises à jour au démarrage, téléchargent la nouvelle version en arrière-plan et l'installent à la fermeture. La source est par défaut les releases GitHub de ce dépôt. Pour en changer, renseigner `UpdateSource` dans `%APPDATA%\PhoneMirror\settings.json` :
-
-```json
-"UpdateSource": "\\\\serveur\\partage\\PhoneMirror"
-```
-
-Valeurs possibles : un dépôt GitHub (`https://github.com/…`), une adresse web contenant les fichiers produits par Velopack, ou un dossier local ou réseau.
+---
 
 ## Utilisation
 
-- **F2** : afficher ou masquer les statistiques (images décodées et affichées par seconde, erreurs).
-- **F3** : réglages, enregistrés dans `%APPDATA%\PhoneMirror\settings.json` :
-  - téléphone (utile quand plusieurs sont branchés), résolution, débit, images par seconde ;
-  - son du téléphone sur le PC (activé par défaut ; pendant la recopie, le son ne sort plus du téléphone) ;
-  - éteindre l'écran du téléphone pendant la recopie ;
-  - fenêtre toujours au premier plan ;
-  - montrer les clics (activé par défaut), pratique en partage d'écran : une onde s'élargit pour un toucher (clic gauche) et se referme pour un retour (clic droit). Style (onde et point, ou point seul), couleur (turquoise, rouge, orange, jaune, vert, violet, blanc, gris) et taille réglables.
-- **F11** : plein écran.
-- **Glisser-déposer** un fichier sur la fenêtre : un APK est installé, tout autre fichier est copié dans le dossier Téléchargements du téléphone.
-- La position et la taille de la fenêtre sont mémorisées.
-- Au débranchement, la recopie reprend toute seule quand le téléphone revient. Le bouton « Réessayer » reste disponible.
-- Journal de diagnostic : `%APPDATA%\PhoneMirror\journal.log`, recréé à chaque lancement.
+Ouvrez Phone Mirror, puis branchez le téléphone, dans l'ordre que vous voulez. La recopie démarre toute seule. Si le câble se débranche, elle reprend d'elle-même dès que le téléphone revient.
 
-### Souris et clavier
+### Souris
 
-| Action sur le PC | Effet sur le téléphone |
+| Sur le PC | Sur le téléphone |
 |---|---|
-| Clic gauche, glisser | Toucher, faire défiler, balayer |
-| Molette (Maj + molette) | Défilement vertical (horizontal) |
-| Clic droit | Retour (allume l'écran s'il est éteint) |
-| Clic du milieu | Accueil |
-| Boutons latéraux de la souris | Applications récentes / notifications |
-| Frappe au clavier | Texte (accents compris), Entrée, Retour arrière, flèches… |
-| Ctrl+V | Colle le presse-papiers du PC sur le téléphone |
-| Ctrl+C / Ctrl+X | Copie / coupe la sélection du téléphone vers le PC |
-| Alt+H / Alt+B / Alt+S | Accueil / Retour / Applications récentes |
-| Alt+↑ / Alt+↓ | Volume + / − |
-| Alt+P | Bouton marche/arrêt |
-| Alt+N / Alt+Maj+N | Ouvrir / fermer les notifications |
-| Alt+R | Faire pivoter l'écran du téléphone |
-| Alt+O / Alt+Maj+O | Éteindre / rallumer l'écran du téléphone (la recopie continue) |
+| Clic gauche | Toucher |
+| Clic gauche maintenu et glisser | Faire défiler, balayer, déplacer |
+| Molette | Défilement vertical |
+| Maj + molette | Défilement horizontal |
+| Clic droit | Retour (rallume aussi l'écran s'il est éteint) |
+| Clic de la molette | Accueil |
+| Boutons latéraux de la souris | Applications récentes / volet des notifications |
 
-Le texte copié sur le téléphone arrive aussi automatiquement dans le presse-papiers du PC.
+### Clavier
 
-## Limites
+Tapez directement au clavier : le texte arrive sur le téléphone, accents compris, ainsi que les touches Entrée, Retour arrière et les flèches.
 
-- **Appels téléphoniques** : le son d'un appel ne passe pas par la sortie audio capturée (Android le traite à part), il reste donc sur le téléphone, et le micro du PC ne peut pas être envoyé dans l'appel. Pour téléphoner depuis le PC, utiliser « Lien avec Windows » (Phone Link) en Bluetooth, qui fonctionne en parallèle de Phone Mirror.
-- **Son** : Android 11 minimum ; certaines applications interdisent la capture de leur son.
+| Raccourci | Effet |
+|---|---|
+| **Ctrl+V** | Colle sur le téléphone le texte copié sur le PC |
+| **Ctrl+C** / **Ctrl+X** | Copie / coupe la sélection du téléphone vers le PC |
+| **Alt+H** | Accueil |
+| **Alt+B** | Retour |
+| **Alt+S** | Applications récentes |
+| **Alt+↑** / **Alt+↓** | Volume + / − |
+| **Alt+P** | Bouton marche/arrêt |
+| **Alt+N** / **Alt+Maj+N** | Ouvrir / fermer les notifications |
+| **Alt+R** | Faire pivoter l'écran du téléphone |
+| **Alt+O** / **Alt+Maj+O** | Éteindre / rallumer l'écran du téléphone (la recopie continue) |
+| **F2** | Afficher ou masquer les statistiques (images par seconde) |
+| **F3** | Réglages |
+| **F11** | Plein écran |
+
+Un texte copié sur le téléphone arrive aussi automatiquement dans le presse-papiers du PC.
+
+### Fichiers
+
+Faites glisser un fichier sur la fenêtre :
+- un fichier **.apk** est installé sur le téléphone ;
+- tout autre fichier (photo, PDF…) est copié dans le dossier **Téléchargements** du téléphone.
+
+### Réglages (F3)
+
+| Réglage | Usage |
+|---|---|
+| Téléphone | Choisir le téléphone quand plusieurs sont branchés |
+| Résolution, débit, images par seconde | Netteté et fluidité. Les valeurs par défaut conviennent à la plupart des cas. Baissez-les si le PC ou le téléphone peinent. |
+| Son du téléphone sur le PC | Activé par défaut. Pendant la recopie, le son sort du PC et plus du téléphone. |
+| Éteindre l'écran du téléphone | Économise la batterie et garde le contenu discret ; la recopie continue sur le PC |
+| Toujours au premier plan | La fenêtre reste au-dessus des autres |
+| Clics | Montrer ou masquer les ondes de clic, et choisir leur style (onde ou point seul), leur couleur et leur taille |
+
+La position et la taille de la fenêtre sont mémorisées d'une fois sur l'autre.
+
+---
+
+## Mises à jour
+
+Elles sont automatiques. Au démarrage, Phone Mirror vérifie s'il existe une nouvelle version et la télécharge en arrière-plan. Un message signale qu'elle est prête, et elle s'installe à la **fermeture** de l'application. Elle est donc active au lancement suivant.
+
+## Questions fréquentes
+
+**La fenêtre reste sur « En attente du téléphone ».**
+- Vérifiez que le débogage USB est activé (étape 2 de l'installation) et essayez un autre câble ou un autre port USB.
+- Débranchez puis rebranchez le téléphone, et regardez s'il affiche la question « Autoriser le débogage USB ? ».
+- Si vous avez refusé cette question par erreur, ouvrez **Options pour les développeurs › Révoquer les autorisations de débogage USB**, puis rebranchez.
+
+**L'image s'affiche mais la souris ne fait rien (Xiaomi, Redmi, POCO).**
+Activez **Débogage USB (paramètres de sécurité)** dans les options pour les développeurs.
+
+**Il n'y a pas de son.**
+Le son demande Android 11 ou plus récent. Certaines applications interdisent la capture de leur son, par exemple Netflix.
+
+**Pendant un appel téléphonique, le son reste sur le téléphone.**
+C'est une limite d'Android, qui isole le son des appels. Pour téléphoner depuis le PC, utilisez **Lien avec Windows** (Phone Link) en Bluetooth : il fonctionne en même temps que Phone Mirror.
+
+**L'image est moins nette en mode paysage.**
+Dans F3, choisissez la résolution **Native** et un débit plus élevé.
+
+**Où sont les réglages et le journal ?**
+Dans `%APPDATA%\PhoneMirror` : `settings.json` pour les réglages, et `journal.log` pour le journal de diagnostic, recréé à chaque lancement. Joignez le journal si vous signalez un problème.
+
+**Comment désinstaller ?**
+Ouvrez **Paramètres Windows › Applications › Applications installées › Phone Mirror › Désinstaller**. Désactivez ensuite le débogage USB sur le téléphone si vous ne vous en servez plus.
+
+## Confidentialité
+
+Tout reste entre le téléphone et le PC, par le câble USB : aucune image, aucun son ni aucune frappe n'est envoyé sur Internet. La seule connexion Internet sert à vérifier les mises à jour sur cette page GitHub.
+
+---
+
+## Pour les développeurs
+
+Le fonctionnement, la compilation et la construction de l'installeur sont décrits dans [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Licences
 
-- Serveur scrcpy : Apache 2.0.
-- FFmpeg : build LGPL, en DLL séparées non modifiées (licence fournie dans `third_party/ffmpeg`). Ne pas revenir à une build « full » (GPL) pour l'installeur.
-- Velopack : MIT. NAudio : MIT.
-- Icône : dessinée par `Assets/make-icon.ps1` (à relancer après modification).
-- adb (Android SDK Platform-Tools) : soumis aux conditions de licence du SDK Android. L'installeur l'embarque, comme le fait scrcpy ; à valider avant une diffusion hors de l'entreprise.
+Phone Mirror s'appuie sur :
+- le serveur de [scrcpy](https://github.com/Genymobile/scrcpy) (Apache 2.0) ;
+- [FFmpeg](https://ffmpeg.org) en build LGPL ;
+- [NAudio](https://github.com/naudio/NAudio) et [Velopack](https://velopack.io) (MIT) ;
+- adb (Android SDK Platform-Tools).
+
+Le détail des licences se trouve dans [DEVELOPMENT.md](DEVELOPMENT.md#licences).
