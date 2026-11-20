@@ -49,11 +49,16 @@ public partial class MainWindow : Window
         _ = new KeyboardForwarder(this, () => _session?.Control);
         _ = new FileDropHandler(this, () => _session?.Control != null ? _options : null, ShowToast);
 
-        // Onde au clic gauche (le toucher) ; PreviewMouseDown passe avant MouseForwarder, qui marque l'événement traité.
+        // Ondes de clic : vers l'extérieur pour le toucher (gauche), vers l'intérieur pour le retour (droit).
+        // PreviewMouseDown passe avant MouseForwarder, qui marque l'événement comme traité.
         var ripples = new ClickRippleLayer(ClickLayer);
         VideoImage.PreviewMouseLeftButtonDown += (_, e) =>
         {
             if (_settings.ShowClicks && _session?.Control != null) ripples.Show(e.GetPosition(ClickLayer));
+        };
+        VideoImage.PreviewMouseRightButtonDown += (_, e) =>
+        {
+            if (_settings.ShowClicks && _session?.Control != null) ripples.ShowInward(e.GetPosition(ClickLayer));
         };
 
         _fullScreen = new FullScreenToggle(this);

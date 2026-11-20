@@ -22,13 +22,39 @@ public sealed class ClickRippleLayer(Canvas canvas)
     private static readonly Brush DotFill = Frozen(new SolidColorBrush(Color.FromArgb(0xC0, 0xFF, 0xFF, 0xFF)));
     private static readonly Effect Shadow = CreateShadow();
 
-    /// <summary>Lance l'onde ; <paramref name="position"/> est relative au calque.</summary>
+    /// <summary>Onde qui s'élargit (clic gauche, toucher) ; <paramref name="position"/> est relative au calque.</summary>
     public void Show(Point position)
     {
         // Onde : cercle qui s'agrandit en s'effaçant.
         Animate(CreateCircle(position, WaveFill, WaveStroke), from: 0.15, to: 1.0, WaveDuration);
         // Point central plus bref, qui marque l'endroit exact du toucher.
         Animate(CreateCircle(position, DotFill, null, 0.28), from: 1.0, to: 0.8, DotDuration);
+    }
+
+    /// <summary>Onde qui se referme vers le point (clic droit, retour) : l'inverse de <see cref="Show"/>.</summary>
+    public void ShowInward(Point position)
+    {
+        var duration = WaveDuration.TimeSpan;
+
+        // Le cercle apparaît grand, se resserre en se renforçant, puis s'éteint au centre.
+        Ellipse wave = CreateCircle(position, WaveFill, WaveStroke);
+        var shrink = new DoubleAnimation(1.0, 0.15, WaveDuration) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } };
+        var fade = new DoubleAnimationUsingKeyFrames { Duration = WaveDuration };
+        fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(duration * 0.3)));
+        fade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(duration * 0.75)));
+        fade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(duration)));
+        Run(wave, shrink, fade);
+
+        // Le point central s'allume quand l'onde arrive au centre.
+        Ellipse dot = CreateCircle(position, DotFill, null, 0.28);
+        dot.Opacity = 0;
+        TimeSpan delay = duration * 0.6;
+        var pop = new DoubleAnimation(0.6, 1.0, DotDuration) { BeginTime = delay, EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+        var dotFade = new DoubleAnimationUsingKeyFrames { BeginTime = delay, Duration = DotDuration };
+        dotFade.KeyFrames.Add(new LinearDoubleKeyFrame(1.0, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+        dotFade.KeyFrames.Add(new LinearDoubleKeyFrame(0.0, KeyTime.FromTimeSpan(DotDuration.TimeSpan)));
+        Run(dot, pop, dotFade);
     }
 
     private Ellipse CreateCircle(Point center, Brush fill, Brush? stroke, double sizeFactor = 1.0)
@@ -57,6 +83,12 @@ public sealed class ClickRippleLayer(Canvas canvas)
         // Expansion rapide au début, puis fondu tardif : l'onde reste bien visible pendant qu'elle grandit.
         var scale = new DoubleAnimation(from, to, duration) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
         var fade = new DoubleAnimation(1.0, 0.0, duration) { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } };
+        Run(circle, scale, fade);
+    }
+
+    /// <summary>Applique l'échelle et l'opacité ; le cercle est retiré à la fin du fondu.</summary>
+    private void Run(Ellipse circle, AnimationTimeline scale, AnimationTimeline fade)
+    {
         fade.Completed += (_, _) => canvas.Children.Remove(circle);
 
         var transform = (ScaleTransform)circle.RenderTransform;
