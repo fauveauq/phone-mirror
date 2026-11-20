@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+third_party/adb/*
+third_party/ffmpeg/*
+third_party/scrcpy-server
+.sf/
+publish/
+installer/out/
+*.msi
+*.wixpdb
+TestResults/

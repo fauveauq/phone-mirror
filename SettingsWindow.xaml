@@ -1,0 +1,67 @@
+<Window x:Class="PhoneMirror.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Réglages — Phone Mirror"
+        Width="520" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#FF1B1D22">
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFE6E8EE" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="0,6" />
+            <Setter Property="Padding" Value="6,4" />
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="16,6" />
+            <Setter Property="MinWidth" Value="90" />
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="20">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Téléphone" />
+            <DockPanel Grid.Row="0" Grid.Column="2">
+                <Button DockPanel.Dock="Right" Content="↻" MinWidth="0" Padding="8,4" Margin="6,6,0,6"
+                        ToolTip="Actualiser la liste" Click="OnRefreshClick" />
+                <ComboBox x:Name="DeviceBox" />
+            </DockPanel>
+
+            <TextBlock Grid.Row="1" Text="Résolution max." />
+            <ComboBox x:Name="SizeBox" Grid.Row="1" Grid.Column="2" />
+
+            <TextBlock Grid.Row="2" Text="Débit vidéo" />
+            <ComboBox x:Name="BitRateBox" Grid.Row="2" Grid.Column="2" />
+
+            <TextBlock Grid.Row="3" Text="Images par seconde" />
+            <ComboBox x:Name="FpsBox" Grid.Row="3" Grid.Column="2" />
+        </Grid>
+
+        <CheckBox x:Name="ScreenOffBox" Margin="0,12,0,0" Foreground="#FFE6E8EE"
+                  Content="Éteindre l'écran du téléphone pendant la recopie" />
+        <CheckBox x:Name="TopmostBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
+                  Content="Fenêtre toujours au premier plan" />
+
+        <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="12" Foreground="#FF9AA0AC"
+                   Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand l'un des quatre premiers réglages change." />
+
+        <StackPanel Margin="0,20,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Enregistrer" IsDefault="True" Click="OnSaveClick" />
+            <Button Content="Annuler" IsCancel="True" Margin="8,0,0,0" />
+        </StackPanel>
+    </StackPanel>
+</Window>

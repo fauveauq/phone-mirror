@@ -1,0 +1,47 @@
+<Window x:Class="PhoneMirror.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Phone Mirror"
+        Width="460" Height="900" MinWidth="240" MinHeight="320"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF101114"
+        AllowDrop="True">
+    <Grid>
+        <Image x:Name="VideoImage"
+               Stretch="Uniform"
+               RenderOptions.BitmapScalingMode="HighQuality"
+               SnapsToDevicePixels="True"
+               Focusable="True" FocusVisualStyle="{x:Null}" />
+
+        <!-- Statistiques, affichées ou masquées avec F2 -->
+        <TextBlock x:Name="StatsText"
+                   Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top"
+                   FontFamily="Consolas" FontSize="12" Foreground="#C0FFFFFF"
+                   Visibility="Collapsed" IsHitTestVisible="False" />
+
+        <!-- Message bref (envoi de fichiers…), en bas de la fenêtre -->
+        <Border x:Name="Toast" Visibility="Collapsed" IsHitTestVisible="False"
+                VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="12,0,12,24"
+                Padding="14,8" CornerRadius="6" Background="#E0202228">
+            <TextBlock x:Name="ToastText" Foreground="White" FontSize="13" TextWrapping="Wrap" />
+        </Border>
+
+        <Border x:Name="StatusOverlay" Background="#F0101114">
+            <StackPanel MaxWidth="360" Margin="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock x:Name="StatusTitle"
+                           FontSize="18" FontWeight="SemiBold" Foreground="White"
+                           TextAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock x:Name="StatusDetail"
+                           Margin="0,10,0,0" FontSize="13" Foreground="#FFB8BCC6"
+                           TextAlignment="Center" TextWrapping="Wrap" />
+                <StackPanel x:Name="RetryButtons" Orientation="Horizontal" Margin="0,22,0,0"
+                            HorizontalAlignment="Center" Visibility="Collapsed">
+                    <Button Content="Réessayer" Padding="20,8" Click="OnRetryClick" />
+                    <Button Content="Réglages" Padding="20,8" Margin="10,0,0,0" Click="OnSettingsClick" />
+                </StackPanel>
+                <TextBlock Margin="0,18,0,0" FontSize="11" Foreground="#FF7C818C" TextAlignment="Center"
+                           Text="F2 : statistiques · F3 : réglages · F11 : plein écran" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
