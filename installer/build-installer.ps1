@@ -65,7 +65,7 @@ try {
     }
 
     Invoke-Step 'Empaquetage Velopack' {
-        dotnet vpk pack --packId PhoneMirror --packVersion $version --packTitle 'Phone Mirror' `
+        dotnet vpk pack --packId PhoneMirror --packVersion $version --packTitle 'Phone Mirror' --runtime win-x64 `
             --packAuthors 'Phone Mirror' --packDir $publishDir --mainExe PhoneMirror.exe --outputDir $outDir
     }
 
