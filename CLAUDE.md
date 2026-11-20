@@ -22,6 +22,7 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 
 - **Téléphone** : on réutilise le serveur de scrcpy **v5.0.1** (Apache 2.0), copié et lancé via `adb shell app_process`, sans installer d'application. Il encode l'écran en H.264 avec l'encodeur matériel.
 - **Transport** : tunnel `adb forward tcp:27183 localabstract:scrcpy`, options `tunnel_forward=true audio=false control=true`. Ordre imposé par le serveur (`DesktopConnection.java`) : connexion vidéo (octet factice), puis connexion de contrôle, et seulement ensuite nom de l'appareil et codec sur la connexion vidéo.
+- **Son** : `audio=true audio_codec=opus`, connexion ouverte entre vidéo et contrôle. En-tête u32 : `opus`, 0 = désactivé par le téléphone (Android < 11), 1 = erreur. Paquets au format vidéo sans session ; le paquet de config (OpusHead) est ignoré (48 kHz stéréo par défaut). Décodage FFmpeg (`OpusDecoder`), lecture NAudio `WasapiPlayer` partagé 40 ms avec suivi de la sortie par défaut (incompatible avec IAudioClient3 : ne pas combiner). Tampon vidé au-delà de 150 ms de retard. Une panne audio ne doit jamais couper la vidéo.
 - **Contrôle** : format binaire de `ControlMessageReader.java` (v5.0.1). Positions exprimées dans la taille courante de la vidéo, sinon ignorées par le serveur. Pointeur « souris » (-1) avec bouton principal = injecté comme un doigt. Le serveur renvoie le presse-papiers du téléphone (`DeviceMessageWriter.java`).
 - **Protocole** (scrcpy 4.x/5.x, voir `doc/develop.md` du dépôt scrcpy au tag v5.0.1) : octet factice, nom de l'appareil (64 octets), identifiant du codec (u32), puis des en-têtes de 12 octets. Bit 63 = paquet de session (largeur, hauteur), bit 62 = configuration (SPS/PPS, à fusionner avec l'image suivante), bit 61 = image clé.
 - **PC** : décodage FFmpeg (FFmpeg.AutoGen 9.0.1.1, API `FFmpeg.AutoGen.Abstractions` + `Bindings.DynamicallyLoaded`) en mode faible latence (`AV_CODEC_FLAG_LOW_DELAY`, `thread_count = 1`), conversion en BGRA, triple tampon (`FrameExchange`), affichage WPF via `WriteableBitmap` sur `CompositionTarget.Rendering`. L'affichage prend toujours l'image la plus récente pour que la latence ne s'accumule jamais.
@@ -44,6 +45,12 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 | `Input/PhoneShortcuts.cs` | Raccourcis Alt+touche |
 | `Input/AndroidKeys.cs` | Codes de touches Android |
 | `SettingsWindow.xaml(.cs)` | Réglages (F3) |
+| `Core/MediaPacketReader.cs` | En-têtes de 12 octets, commun vidéo et audio |
+| `Core/ScrcpyAudioStream.cs` | Flux audio (en-tête, paquets) |
+| `Core/AudioPipeline.cs` | Thread audio : lecture, décodage, lecture sur le PC |
+| `Core/OpusDecoder.cs` | Décodage Opus FFmpeg → float entrelacé |
+| `Core/AudioPlayer.cs` | Sortie WASAPI (NAudio), retard plafonné |
+| `Assets/make-icon.ps1` | Génère `Assets/PhoneMirror.ico` (exe, fenêtres, installeur) |
 | `Core/H264Decoder.cs` | Décodage FFmpeg et conversion |
 | `Core/FrameExchange.cs` | Triple tampon décodage → affichage |
 | `Core/MirrorSession.cs` | Orchestration d'une session |
@@ -74,7 +81,7 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 4. Décodage matériel (D3D11VA) et rendu Direct3D pour réduire encore la latence. En attente : la latence actuelle est jugée très bonne.
 5. ~~Réglages accessibles depuis l'interface (résolution, débit, appareil).~~ Fait (F3).
 6. ~~Confort : plein écran, glisser-déposer, écran éteint, premier plan, position mémorisée ; tests ; installeur.~~ Fait.
-7. Son du téléphone sur le PC (scrcpy `audio=true`, Opus, Android 11+) : modifie l'architecture, à valider avec l'utilisateur.
+7. ~~Son du téléphone sur le PC (scrcpy `audio=true`, Opus, Android 11+).~~ Fait (v1.1.0), validé par l'utilisateur : synchro et qualité bonnes.
 
 ## Règles de travail
 

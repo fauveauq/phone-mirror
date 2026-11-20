@@ -27,6 +27,7 @@ public partial class SettingsWindow : Window
         Fill(SizeBox, Sizes, current.MaxSize, v => v == 0 ? "Native (la plus nette)" : $"{v} px");
         Fill(BitRateBox, BitRates, current.VideoBitRateMbps, v => $"{v} Mbit/s");
         Fill(FpsBox, FpsValues, current.MaxFps, v => $"{v} i/s");
+        AudioBox.IsChecked = current.EnableAudio;
         ScreenOffBox.IsChecked = current.TurnScreenOff;
         TopmostBox.IsChecked = current.AlwaysOnTop;
 
@@ -89,6 +90,7 @@ public partial class SettingsWindow : Window
             MaxSize = SelectedValue(SizeBox),
             VideoBitRateMbps = SelectedValue(BitRateBox),
             MaxFps = SelectedValue(FpsBox),
+            EnableAudio = AudioBox.IsChecked == true,
             TurnScreenOff = ScreenOffBox.IsChecked == true,
             AlwaysOnTop = TopmostBox.IsChecked == true,
         };

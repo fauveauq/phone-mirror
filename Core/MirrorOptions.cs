@@ -28,6 +28,9 @@ public sealed record MirrorOptions
 
     public int MaxFps { get; init; } = 60;
 
+    /// <summary>Son du téléphone joué sur le PC (Android 11 ou plus récent).</summary>
+    public bool EnableAudio { get; init; } = true;
+
     /// <summary>Contrôle du téléphone depuis le PC (souris, clavier, presse-papiers).</summary>
     public bool EnableControl { get; init; } = true;
 

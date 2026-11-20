@@ -10,9 +10,11 @@
     <PlatformTarget>x64</PlatformTarget>
     <RootNamespace>PhoneMirror</RootNamespace>
     <AssemblyName>PhoneMirror</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <!-- Main personnalisé (Program.cs) pour initialiser Velopack avant WPF. -->
     <StartupObject>PhoneMirror.Program</StartupObject>
+    <!-- Icône générée par Assets\make-icon.ps1 -->
+    <ApplicationIcon>Assets\PhoneMirror.ico</ApplicationIcon>
     <Product>Phone Mirror</Product>
     <Description>Recopie et contrôle de l'écran d'un téléphone Android en USB</Description>
   </PropertyGroup>
@@ -35,7 +37,13 @@
   <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen.Abstractions" Version="9.0.1.1" />
     <PackageReference Include="FFmpeg.AutoGen.Bindings.DynamicallyLoaded" Version="9.0.1.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.3.0" />
     <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+  <!-- Icône des fenêtres (barre de titre, Alt+Tab). -->
+  <ItemGroup>
+    <Resource Include="Assets\PhoneMirror.ico" />
   </ItemGroup>
 
   <!-- adb, serveur scrcpy et DLL FFmpeg copiés à côté de l'exécutable. -->

@@ -21,6 +21,9 @@ public sealed record UserSettings
 
     public int MaxFps { get; init; } = 60;
 
+    /// <summary>Son du téléphone joué sur le PC.</summary>
+    public bool EnableAudio { get; init; } = true;
+
     /// <summary>Éteint l'écran du téléphone pendant la recopie (batterie, discrétion).</summary>
     public bool TurnScreenOff { get; init; }
 
@@ -64,6 +67,7 @@ public sealed record UserSettings
         MaxSize = MaxSize,
         VideoBitRate = VideoBitRateMbps * 1_000_000,
         MaxFps = MaxFps,
+        EnableAudio = EnableAudio,
     };
 
     /// <summary>Ramène dans des bornes raisonnables les valeurs d'un fichier modifié à la main.</summary>

@@ -7,7 +7,8 @@ Recopie l'écran d'un téléphone Android sur un PC Windows, avec une latence vi
 1. **Téléphone** : le serveur open source de scrcpy (licence Apache 2.0) est copié et lancé via adb, sans rien installer. Il capture l'écran et l'encode en H.264 avec l'encodeur matériel du téléphone.
 2. **Transport** : un tunnel `adb forward` en USB transporte le flux brut, sans mise en mémoire tampon.
 3. **PC** : FFmpeg décode chaque image dès son arrivée (mode faible latence), puis la fenêtre WPF affiche toujours la plus récente à chaque rafraîchissement de l'écran. Si l'affichage prend du retard, les images en trop sont sautées au lieu de s'accumuler.
-4. **Contrôle** : une seconde connexion transmet la souris, le clavier et le presse-papiers au téléphone.
+4. **Son** (Android 11 ou plus récent) : le téléphone envoie le son en Opus, décodé par FFmpeg et joué par WASAPI (NAudio) avec un retard plafonné à 150 ms pour rester synchronisé avec l'image.
+5. **Contrôle** : une connexion de plus transmet la souris, le clavier et le presse-papiers au téléphone.
 
 | Fichier | Rôle |
 |---|---|
@@ -18,6 +19,9 @@ Recopie l'écran d'un téléphone Android sur un PC Windows, avec une latence vi
 | `Core/ScrcpyConnector.cs` | Ouverture des connexions vidéo et contrôle |
 | `Core/ScrcpyVideoStream.cs` | Lecture du protocole vidéo de scrcpy |
 | `Core/ScrcpyControlChannel.cs` | Messages de contrôle (toucher, touches, texte, presse-papiers) |
+| `Core/MediaPacketReader.cs` | Lecture des paquets vidéo et audio |
+| `Core/ScrcpyAudioStream.cs`, `Core/AudioPipeline.cs` | Flux audio et sa boucle de lecture |
+| `Core/OpusDecoder.cs`, `Core/AudioPlayer.cs` | Décodage Opus (FFmpeg) et lecture WASAPI (NAudio) |
 | `Core/H264Decoder.cs` | Décodage FFmpeg et conversion en BGRA |
 | `Core/FrameExchange.cs` | Triple tampon entre décodage et affichage |
 | `Core/MirrorSession.cs` | Orchestration d'une session |
@@ -81,6 +85,7 @@ Valeurs possibles : un dépôt GitHub (`https://github.com/…`), une adresse we
 - **F2** : afficher ou masquer les statistiques (images décodées et affichées par seconde, erreurs).
 - **F3** : réglages, enregistrés dans `%APPDATA%\PhoneMirror\settings.json` :
   - téléphone (utile quand plusieurs sont branchés), résolution, débit, images par seconde ;
+  - son du téléphone sur le PC (activé par défaut ; pendant la recopie, le son ne sort plus du téléphone) ;
   - éteindre l'écran du téléphone pendant la recopie ;
   - fenêtre toujours au premier plan.
 - **F11** : plein écran.
@@ -114,5 +119,6 @@ Le texte copié sur le téléphone arrive aussi automatiquement dans le presse-p
 
 - Serveur scrcpy : Apache 2.0.
 - FFmpeg : build LGPL, en DLL séparées non modifiées (licence fournie dans `third_party/ffmpeg`). Ne pas revenir à une build « full » (GPL) pour l'installeur.
-- Velopack : MIT.
+- Velopack : MIT. NAudio : MIT.
+- Icône : dessinée par `Assets/make-icon.ps1` (à relancer après modification).
 - adb (Android SDK Platform-Tools) : soumis aux conditions de licence du SDK Android. L'installeur l'embarque, comme le fait scrcpy ; à valider avant une diffusion hors de l'entreprise.

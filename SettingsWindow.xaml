@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Réglages — Phone Mirror"
+        Icon="/Assets/PhoneMirror.ico"
         Width="520" SizeToContent="Height" ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         Background="#FF1B1D22">
@@ -51,13 +52,15 @@
             <ComboBox x:Name="FpsBox" Grid.Row="3" Grid.Column="2" />
         </Grid>
 
-        <CheckBox x:Name="ScreenOffBox" Margin="0,12,0,0" Foreground="#FFE6E8EE"
+        <CheckBox x:Name="AudioBox" Margin="0,12,0,0" Foreground="#FFE6E8EE"
+                  Content="Son du téléphone sur le PC (Android 11 ou plus récent)" />
+        <CheckBox x:Name="ScreenOffBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
                   Content="Éteindre l'écran du téléphone pendant la recopie" />
         <CheckBox x:Name="TopmostBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
                   Content="Fenêtre toujours au premier plan" />
 
         <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="12" Foreground="#FF9AA0AC"
-                   Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand l'un des quatre premiers réglages change." />
+                   Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand le téléphone, la qualité ou le son changent." />
 
         <StackPanel Margin="0,20,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Enregistrer" IsDefault="True" Click="OnSaveClick" />

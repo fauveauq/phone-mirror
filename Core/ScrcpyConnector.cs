@@ -3,30 +3,34 @@ using System.Net.Sockets;
 
 namespace PhoneMirror.Core;
 
-/// <summary>Connexions ouvertes avec le serveur : vidéo, et contrôle s'il est activé.</summary>
-public sealed record ScrcpyConnection(ScrcpyVideoStream Video, ScrcpyControlChannel? Control) : IDisposable
+/// <summary>Connexions ouvertes avec le serveur : vidéo, et son et contrôle s'ils sont activés.</summary>
+public sealed record ScrcpyConnection(ScrcpyVideoStream Video, ScrcpyAudioStream? Audio, ScrcpyControlChannel? Control)
+    : IDisposable
 {
     public void Dispose()
     {
         Control?.Dispose();
+        Audio?.Dispose();
         Video.Dispose();
     }
 }
 
 /// <summary>
 /// Ouvre les connexions dans l'ordre attendu par le serveur scrcpy (DesktopConnection.java) :
-/// vidéo d'abord (le serveur y envoie un octet factice), puis contrôle ; le nom de l'appareil
-/// et le codec n'arrivent sur la connexion vidéo qu'une fois les deux acceptées.
+/// vidéo d'abord (le serveur y envoie un octet factice), puis son, puis contrôle ; le nom de
+/// l'appareil et le codec n'arrivent sur la connexion vidéo qu'une fois toutes acceptées.
 /// </summary>
 public static class ScrcpyConnector
 {
     private static readonly TimeSpan AttemptTimeout = TimeSpan.FromSeconds(2);
 
     public static async Task<ScrcpyConnection> ConnectAsync(
-        int port, bool withControl, Action<string> log, Func<bool> isServerRunning, TimeSpan timeout, CancellationToken ct)
+        int port, bool withAudio, bool withControl, Action<string> log, Func<bool> isServerRunning,
+        TimeSpan timeout, CancellationToken ct)
     {
         DateTime deadline = DateTime.UtcNow + timeout;
         TcpClient video = await ConnectVideoAsync(port, isServerRunning, deadline, ct).ConfigureAwait(false);
+        TcpClient? audio = null;
         TcpClient? control = null;
 
         try
@@ -34,27 +38,46 @@ public static class ScrcpyConnector
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeoutCts.CancelAfter(Remaining(deadline));
 
-            if (withControl)
-            {
-                control = CreateClient();
-                await control.ConnectAsync(IPAddress.Loopback, port, timeoutCts.Token).ConfigureAwait(false);
-            }
+            if (withAudio) audio = await ConnectNextAsync(port, timeoutCts.Token).ConfigureAwait(false);
+            if (withControl) control = await ConnectNextAsync(port, timeoutCts.Token).ConfigureAwait(false);
 
             ScrcpyVideoStream stream = await ScrcpyVideoStream.HandshakeAsync(video, timeoutCts.Token).ConfigureAwait(false);
-            return new ScrcpyConnection(stream, control == null ? null : new ScrcpyControlChannel(control, log));
+            return new ScrcpyConnection(
+                stream,
+                audio == null ? null : new ScrcpyAudioStream(audio),
+                control == null ? null : new ScrcpyControlChannel(control, log));
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            video.Dispose();
-            control?.Dispose();
+            DisposeAll(video, audio, control);
             throw new TimeoutException("Le téléphone n'a pas terminé l'ouverture de la connexion à temps.");
         }
         catch
         {
-            video.Dispose();
-            control?.Dispose();
+            DisposeAll(video, audio, control);
             throw;
         }
+    }
+
+    /// <summary>Connexion suivante (son ou contrôle) : le serveur l'accepte dès la précédente établie.</summary>
+    private static async Task<TcpClient> ConnectNextAsync(int port, CancellationToken ct)
+    {
+        TcpClient client = CreateClient();
+        try
+        {
+            await client.ConnectAsync(IPAddress.Loopback, port, ct).ConfigureAwait(false);
+            return client;
+        }
+        catch
+        {
+            client.Dispose();
+            throw;
+        }
+    }
+
+    private static void DisposeAll(params TcpClient?[] clients)
+    {
+        foreach (TcpClient? client in clients) client?.Dispose();
     }
 
     /// <summary>

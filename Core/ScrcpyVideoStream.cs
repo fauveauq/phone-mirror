@@ -1,21 +1,8 @@
 using System.Buffers.Binary;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
 namespace PhoneMirror.Core;
-
-public enum PacketKind
-{
-    /// <summary>Début d'une session de capture (au démarrage et à chaque rotation).</summary>
-    Session,
-    /// <summary>Paramètres du codec (SPS/PPS), à fournir au décodeur avec l'image suivante.</summary>
-    Config,
-    /// <summary>Image encodée.</summary>
-    Frame,
-}
-
-public readonly record struct StreamPacket(PacketKind Kind, int Width, int Height, bool IsKeyFrame, long Pts, int Length);
 
 /// <summary>
 /// Flux vidéo du serveur scrcpy (protocole de scrcpy 4.x/5.x, voir doc/develop.md du projet scrcpy).
@@ -25,17 +12,10 @@ public sealed class ScrcpyVideoStream : IDisposable
 {
     private const uint CodecH264 = 0x68323634; // "h264"
     private const int DeviceNameLength = 64;
-    private const int MaxPacketSize = 64 * 1024 * 1024;
-
-    private const ulong FlagSession = 1UL << 63;
-    private const ulong FlagConfig = 1UL << 62;
-    private const ulong FlagKeyFrame = 1UL << 61;
-    private const ulong PtsMask = FlagKeyFrame - 1;
 
     private readonly TcpClient _client;
     private readonly NetworkStream _stream;
-    private readonly byte[] _header = new byte[12];
-    private byte[] _payload = new byte[1024 * 1024];
+    private readonly MediaPacketReader _reader;
 
     public string DeviceName { get; }
 
@@ -43,6 +23,7 @@ public sealed class ScrcpyVideoStream : IDisposable
     {
         _client = client;
         _stream = stream;
+        _reader = new MediaPacketReader(stream);
         DeviceName = deviceName;
     }
 
@@ -68,32 +49,10 @@ public sealed class ScrcpyVideoStream : IDisposable
     }
 
     /// <summary>Lit le paquet suivant (bloquant). Son contenu est accessible via <see cref="GetPayload"/>.</summary>
-    public StreamPacket ReadPacket()
-    {
-        _stream.ReadExactly(_header);
-        ulong first = BinaryPrimitives.ReadUInt64BigEndian(_header);
-
-        if ((first & FlagSession) != 0)
-        {
-            int width = BinaryPrimitives.ReadInt32BigEndian(_header.AsSpan(4));
-            int height = BinaryPrimitives.ReadInt32BigEndian(_header.AsSpan(8));
-            return new StreamPacket(PacketKind.Session, width, height, false, 0, 0);
-        }
-
-        int size = BinaryPrimitives.ReadInt32BigEndian(_header.AsSpan(8));
-        if (size <= 0 || size > MaxPacketSize)
-            throw new InvalidDataException($"Taille de paquet invalide : {size} octets.");
-
-        if (_payload.Length < size)
-            _payload = new byte[Math.Max(size, _payload.Length * 2)];
-        _stream.ReadExactly(_payload, 0, size);
-
-        PacketKind kind = (first & FlagConfig) != 0 ? PacketKind.Config : PacketKind.Frame;
-        return new StreamPacket(kind, 0, 0, (first & FlagKeyFrame) != 0, (long)(first & PtsMask), size);
-    }
+    public StreamPacket ReadPacket() => _reader.ReadPacket();
 
     /// <summary>Contenu du dernier paquet lu, valable jusqu'au prochain appel à <see cref="ReadPacket"/>.</summary>
-    public ReadOnlySpan<byte> GetPayload(in StreamPacket packet) => _payload.AsSpan(0, packet.Length);
+    public ReadOnlySpan<byte> GetPayload(in StreamPacket packet) => _reader.GetPayload(packet);
 
     /// <summary>Ferme la connexion ; une lecture en cours se termine alors par une exception.</summary>
     public void Dispose()

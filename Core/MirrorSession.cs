@@ -8,6 +8,8 @@ public sealed class MirrorSession(MirrorOptions options) : IAsyncDisposable
 {
     private ScrcpyServer? _server;
     private ScrcpyVideoStream? _stream;
+    private ScrcpyAudioStream? _audioStream;
+    private AudioPipeline? _audio;
     private Thread? _videoThread;
     private long _decodedFrames;
     private long _decodeErrors;
@@ -40,9 +42,10 @@ public sealed class MirrorSession(MirrorOptions options) : IAsyncDisposable
         try
         {
             ScrcpyConnection connection = await ScrcpyConnector.ConnectAsync(
-                options.LocalPort, options.EnableControl, WriteLog, () => !server.HasExited,
+                options.LocalPort, options.EnableAudio, options.EnableControl, WriteLog, () => !server.HasExited,
                 TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
             _stream = connection.Video;
+            _audioStream = connection.Audio;
             Control = connection.Control;
         }
         catch (Exception ex) when (server.HasExited && ex is not OperationCanceledException)
@@ -62,6 +65,8 @@ public sealed class MirrorSession(MirrorOptions options) : IAsyncDisposable
             Priority = ThreadPriority.AboveNormal,
         };
         _videoThread.Start();
+
+        if (_audioStream != null) _audio = new AudioPipeline(_audioStream, WriteLog);
     }
 
     private void VideoLoop()
@@ -119,6 +124,7 @@ public sealed class MirrorSession(MirrorOptions options) : IAsyncDisposable
     {
         if (!_stopping) return;
         Control?.Dispose();
+        _audioStream?.Dispose();
         _stream?.Dispose();
         if (_server != null) await _server.DisposeAsync().ConfigureAwait(false);
         throw new OperationCanceledException("Session fermée pendant le démarrage.");
@@ -132,6 +138,8 @@ public sealed class MirrorSession(MirrorOptions options) : IAsyncDisposable
 
         _stopping = true;
         Control?.Dispose();
+        _audio?.Dispose();
+        _audioStream?.Dispose();
         _stream?.Dispose(); // débloque la lecture en cours sur le thread vidéo
 
         if (_videoThread != null && _videoThread != Thread.CurrentThread)
