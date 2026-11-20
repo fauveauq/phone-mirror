@@ -115,6 +115,11 @@ Valeurs possibles : un dépôt GitHub (`https://github.com/…`), une adresse we
 
 Le texte copié sur le téléphone arrive aussi automatiquement dans le presse-papiers du PC.
 
+## Limites
+
+- **Appels téléphoniques** : le son d'un appel ne passe pas par la sortie audio capturée (Android le traite à part), il reste donc sur le téléphone, et le micro du PC ne peut pas être envoyé dans l'appel. Pour téléphoner depuis le PC, utiliser « Lien avec Windows » (Phone Link) en Bluetooth, qui fonctionne en parallèle de Phone Mirror.
+- **Son** : Android 11 minimum ; certaines applications interdisent la capture de leur son.
+
 ## Licences
 
 - Serveur scrcpy : Apache 2.0.
