@@ -6,6 +6,9 @@ namespace PhoneMirror.Core;
 /// <summary>Couleur des indicateurs de clic.</summary>
 public enum ClickColor { Turquoise, Rouge, Orange, Jaune, Vert, Violet, Blanc, Gris }
 
+/// <summary>Forme des indicateurs de clic.</summary>
+public enum ClickStyle { OndeEtPoint, OndeSeule, PointSeul }
+
 /// <summary>Taille des indicateurs de clic.</summary>
 public enum ClickSize { Petite, Moyenne, Grande }
 
@@ -42,8 +45,7 @@ public sealed record UserSettings
     /// <summary>Indicateur affiché à chaque clic sur l'image du téléphone (partage d'écran, démonstrations).</summary>
     public bool ShowClicks { get; init; } = true;
 
-    /// <summary>Seulement le petit point au centre, sans l'onde.</summary>
-    public bool ClickDotOnly { get; init; }
+    public ClickStyle ClickStyle { get; init; } = ClickStyle.OndeEtPoint;
 
     public ClickColor ClickColor { get; init; } = ClickColor.Turquoise;
 
@@ -101,6 +103,7 @@ public sealed record UserSettings
         VideoBitRateMbps = Math.Clamp(VideoBitRateMbps, 1, 100),
         MaxFps = Math.Clamp(MaxFps, 1, 240),
         Window = Window is { Width: > 0, Height: > 0 } ? Window : null,
+        ClickStyle = Enum.IsDefined(ClickStyle) ? ClickStyle : ClickStyle.OndeEtPoint,
         ClickColor = Enum.IsDefined(ClickColor) ? ClickColor : ClickColor.Turquoise,
         ClickSize = Enum.IsDefined(ClickSize) ? ClickSize : ClickSize.Moyenne,
     };

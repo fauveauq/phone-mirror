@@ -41,9 +41,10 @@ public partial class SettingsWindow : Window
 
     private void FillClickOptions(UserSettings current)
     {
-        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Onde et point", Tag = false });
-        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Point seul", Tag = true });
-        ClickStyleBox.SelectedIndex = current.ClickDotOnly ? 1 : 0;
+        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Onde et point", Tag = ClickStyle.OndeEtPoint });
+        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Onde seule", Tag = ClickStyle.OndeSeule });
+        ClickStyleBox.Items.Add(new ComboBoxItem { Content = "Point seul", Tag = ClickStyle.PointSeul });
+        ClickStyleBox.SelectedItem = ClickStyleBox.Items.Cast<ComboBoxItem>().First(i => (ClickStyle)i.Tag == current.ClickStyle);
 
         foreach (ClickColor color in Enum.GetValues<ClickColor>())
         {
@@ -126,7 +127,7 @@ public partial class SettingsWindow : Window
             TurnScreenOff = ScreenOffBox.IsChecked == true,
             AlwaysOnTop = TopmostBox.IsChecked == true,
             ShowClicks = ShowClicksBox.IsChecked == true,
-            ClickDotOnly = (bool)((ComboBoxItem)ClickStyleBox.SelectedItem).Tag,
+            ClickStyle = (ClickStyle)((ComboBoxItem)ClickStyleBox.SelectedItem).Tag,
             ClickColor = (ClickColor)((ComboBoxItem)ClickColorBox.SelectedItem).Tag,
             ClickSize = (ClickSize)((ComboBoxItem)ClickSizeBox.SelectedItem).Tag,
         };

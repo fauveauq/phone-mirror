@@ -90,7 +90,7 @@ Faites glisser un fichier sur la fenêtre :
 | Son du téléphone sur le PC | Activé par défaut. Pendant la recopie, le son sort du PC et plus du téléphone. |
 | Éteindre l'écran du téléphone | Économise la batterie et garde le contenu discret ; la recopie continue sur le PC |
 | Toujours au premier plan | La fenêtre reste au-dessus des autres |
-| Clics | Montrer ou masquer les ondes de clic, et choisir leur style (onde ou point seul), leur couleur et leur taille |
+| Clics | Montrer ou masquer les ondes de clic, et choisir leur style (onde et point, onde seule ou point seul), leur couleur et leur taille |
 
 La position et la taille de la fenêtre sont mémorisées d'une fois sur l'autre.
 

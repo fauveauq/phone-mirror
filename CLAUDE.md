@@ -40,7 +40,7 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 | `Core/AppUpdater.cs` | Mises à jour Velopack depuis les releases GitHub |
 | `UI/FileDropHandler.cs` | Glisser-déposer de fichiers sur la fenêtre |
 | `UI/FullScreenToggle.cs` | Plein écran (F11) |
-| `UI/ClickRippleLayer.cs` | Ondes visuelles : vers l'extérieur au clic gauche, vers l'intérieur au clic droit (calque `ClickLayer`) ; options `ShowClicks`, `ClickDotOnly`, `ClickColor`, `ClickSize` (énumérations écrites en toutes lettres dans settings.json) |
+| `UI/ClickRippleLayer.cs` | Ondes visuelles : vers l'extérieur au clic gauche, vers l'intérieur au clic droit (calque `ClickLayer`) ; options `ShowClicks`, `ClickStyle`, `ClickColor`, `ClickSize` (énumérations écrites en toutes lettres dans settings.json) |
 | `Input/MouseForwarder.cs` | Souris → toucher, défilement (×3), boutons |
 | `Input/KeyboardForwarder.cs` | Clavier → texte, touches Android, presse-papiers |
 | `Input/PhoneShortcuts.cs` | Raccourcis Alt+touche |

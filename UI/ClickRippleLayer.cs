@@ -9,10 +9,14 @@ using PhoneMirror.Core;
 namespace PhoneMirror.UI;
 
 /// <summary>Apparence des indicateurs de clic, issue des réglages.</summary>
-public readonly record struct ClickAppearance(ClickColor Hue, ClickSize Size, bool DotOnly)
+public readonly record struct ClickAppearance(ClickColor Hue, ClickSize Size, ClickStyle Style)
 {
     public static ClickAppearance From(UserSettings settings) =>
-        new(settings.ClickColor, settings.ClickSize, settings.ClickDotOnly);
+        new(settings.ClickColor, settings.ClickSize, settings.ClickStyle);
+
+    public bool ShowWave => Style != ClickStyle.PointSeul;
+
+    public bool ShowDot => Style != ClickStyle.OndeSeule;
 
     public Color ToColor() => ToColor(Hue);
 
@@ -54,7 +58,7 @@ public sealed class ClickRippleLayer(Canvas canvas)
     /// <summary>Toucher (clic gauche) ; <paramref name="position"/> est relative au calque.</summary>
     public void Show(Point position, ClickAppearance look)
     {
-        if (look.DotOnly)
+        if (!look.ShowWave)
         {
             AnimateDot(position, look, DotOnlyFactor, from: 1.0, to: 0.8, TimeSpan.Zero);
             return;
@@ -65,13 +69,14 @@ public sealed class ClickRippleLayer(Canvas canvas)
         var grow = new DoubleAnimation(0.15, 1.0, WaveDuration) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
         var fade = new DoubleAnimation(1.0, 0.0, WaveDuration) { EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn } };
         Run(wave, grow, fade);
-        AnimateDot(position, look, DotFactor, from: 1.0, to: 0.8, TimeSpan.Zero);
+        if (look.ShowDot)
+            AnimateDot(position, look, DotFactor, from: 1.0, to: 0.8, TimeSpan.Zero);
     }
 
     /// <summary>Retour (clic droit) : l'onde se referme vers le point, l'inverse de <see cref="Show"/>.</summary>
     public void ShowInward(Point position, ClickAppearance look)
     {
-        if (look.DotOnly)
+        if (!look.ShowWave)
         {
             // Point qui se contracte au lieu de grossir.
             AnimateDot(position, look, DotOnlyFactor, from: 1.3, to: 0.6, TimeSpan.Zero);
@@ -91,7 +96,8 @@ public sealed class ClickRippleLayer(Canvas canvas)
         Run(wave, shrink, fade);
 
         // Le point central s'allume quand l'onde arrive au centre.
-        AnimateDot(position, look, DotFactor, from: 0.6, to: 1.0, duration * 0.6);
+        if (look.ShowDot)
+            AnimateDot(position, look, DotFactor, from: 0.6, to: 1.0, duration * 0.6);
     }
 
     /// <summary>Point central : change d'échelle et s'efface, éventuellement après un délai.</summary>
