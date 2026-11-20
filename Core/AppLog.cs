@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace PhoneMirror.Core;
 
 /// <summary>
-/// Journal de l'application, écrit dans %LOCALAPPDATA%\PhoneMirror\journal.log
+/// Journal de l'application, écrit dans %APPDATA%\PhoneMirror\journal.log
 /// (et dans la sortie de débogage). Le fichier est recréé à chaque lancement.
 /// </summary>
 public static class AppLog
@@ -11,8 +11,14 @@ public static class AppLog
     private static readonly Lock Gate = new();
     private static StreamWriter? _writer;
 
-    public static string FilePath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhoneMirror", "journal.log");
+    /// <summary>
+    /// Données de l'utilisateur (réglages, journal). Surtout pas %LOCALAPPDATA%\PhoneMirror :
+    /// c'est le dossier d'installation de Velopack, effacé à la désinstallation.
+    /// </summary>
+    public static string DataDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PhoneMirror");
+
+    public static string FilePath { get; } = Path.Combine(DataDirectory, "journal.log");
 
     public static void Write(string message)
     {

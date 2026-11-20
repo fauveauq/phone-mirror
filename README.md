@@ -27,7 +27,16 @@ Recopie l'écran d'un téléphone Android sur un PC Windows, avec une latence vi
 | `MainWindow.xaml(.cs)` | Fenêtre principale |
 | `SettingsWindow.xaml(.cs)` | Fenêtre de réglages |
 
-## Installation
+## Installation pour les utilisateurs
+
+1. Lancer `PhoneMirror-win-Setup.exe`. L'installation se fait pour l'utilisateur courant, sans droits administrateur et sans rien d'autre à installer. Elle crée un raccourci « Phone Mirror » dans le menu Démarrer.
+2. Sur le téléphone : activer les options pour les développeurs et le **débogage USB**, brancher le câble et accepter l'autorisation qui s'affiche.
+
+Windows SmartScreen peut avertir que l'éditeur est inconnu, car l'installeur n'est pas signé : « Informations complémentaires » puis « Exécuter quand même ».
+
+Désinstallation : Paramètres Windows > Applications. Les réglages restent dans `%APPDATA%\PhoneMirror`.
+
+## Développement
 
 Il faut le **SDK .NET 10** (ou Visual Studio 2026), puis trois dépendances à placer dans `third_party` :
 
@@ -40,22 +49,36 @@ third_party/
 
 - **adb** : contenu de « SDK Platform-Tools for Windows » (site développeurs Android). Si adb est déjà dans le PATH, ce dossier est facultatif.
 - **scrcpy-server** : sur la page des releases GitHub de scrcpy, télécharger `scrcpy-server-v5.0.1` et le renommer `scrcpy-server`. La version doit correspondre exactement à `ServerVersion` dans `Core/MirrorOptions.cs`.
-- **FFmpeg** : une build « shared » 64 bits de FFmpeg **9.0.1** (par exemple `ffmpeg-9.0.1-full_build-shared` de gyan.dev), en copiant le contenu de son dossier `bin`. La version majeure des DLL doit correspondre à celle des paquets `FFmpeg.AutoGen` du `.csproj`.
+- **FFmpeg** : la build **LGPL** « shared » 64 bits de FFmpeg 9.0 de BtbN (`ffmpeg-n9.0-latest-win64-lgpl-shared-9.0.zip`, releases GitHub de BtbN/FFmpeg-Builds). Seuls `avcodec-63.dll`, `avutil-61.dll`, `swscale-10.dll` et `swresample-7.dll` de son dossier `bin` sont nécessaires, plus `LICENSE.txt` renommé `LICENSE-FFmpeg.txt`. La version majeure des DLL doit correspondre à celle des paquets `FFmpeg.AutoGen` du `.csproj`.
 
 Puis :
 
 ```
-dotnet run -c Release
+dotnet run -c Release          # lancer l'application
+dotnet test PhoneMirror.slnx   # tests unitaires (protocole, réglages, adb)
 ```
 
-Sur le téléphone : activer les options pour les développeurs et le débogage USB, brancher le câble et accepter l'autorisation qui s'affiche.
+### Construire l'installeur
+
+```
+.\installer\build-installer.ps1            # installer\out\PhoneMirror-win-Setup.exe
+.\installer\build-installer.ps1 -Publish   # crée aussi une release GitHub (mises à jour automatiques)
+```
+
+Le script lance les tests, publie une version autonome (avec le runtime .NET), puis l'empaquette avec [Velopack](https://velopack.io). Avant chaque `-Publish`, augmenter `<Version>` dans `PhoneMirror.csproj`. Les applications installées vérifient les releases GitHub au démarrage, téléchargent la nouvelle version et l'installent à la fermeture. Les releases doivent être accessibles aux utilisateurs : ce n'est pas le cas si le dépôt est privé.
 
 ## Utilisation
 
 - **F2** : afficher ou masquer les statistiques (images décodées et affichées par seconde, erreurs).
-- **F3** : réglages (téléphone, résolution, débit, images par seconde), enregistrés dans `%LOCALAPPDATA%\PhoneMirror\settings.json`. Utile notamment pour choisir le téléphone quand plusieurs sont branchés.
+- **F3** : réglages, enregistrés dans `%APPDATA%\PhoneMirror\settings.json` :
+  - téléphone (utile quand plusieurs sont branchés), résolution, débit, images par seconde ;
+  - éteindre l'écran du téléphone pendant la recopie ;
+  - fenêtre toujours au premier plan.
+- **F11** : plein écran.
+- **Glisser-déposer** un fichier sur la fenêtre : un APK est installé, tout autre fichier est copié dans le dossier Téléchargements du téléphone.
+- La position et la taille de la fenêtre sont mémorisées.
 - Au débranchement, la recopie reprend toute seule quand le téléphone revient. Le bouton « Réessayer » reste disponible.
-- Journal de diagnostic : `%LOCALAPPDATA%\PhoneMirror\journal.log`, recréé à chaque lancement.
+- Journal de diagnostic : `%APPDATA%\PhoneMirror\journal.log`, recréé à chaque lancement.
 
 ### Souris et clavier
 
@@ -80,4 +103,7 @@ Le texte copié sur le téléphone arrive aussi automatiquement dans le presse-p
 
 ## Licences
 
-Le serveur scrcpy est sous Apache 2.0. Les builds FFmpeg « full » sont sous GPL : à prendre en compte si l'application est un jour distribuée (une build LGPL suffit pour le décodage H.264).
+- Serveur scrcpy : Apache 2.0.
+- FFmpeg : build LGPL, en DLL séparées non modifiées (licence fournie dans `third_party/ffmpeg`). Ne pas revenir à une build « full » (GPL) pour l'installeur.
+- Velopack : MIT.
+- adb (Android SDK Platform-Tools) : soumis aux conditions de licence du SDK Android. L'installeur l'embarque, comme le fait scrcpy ; à valider avant une diffusion hors de l'entreprise.

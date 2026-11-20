@@ -11,7 +11,10 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 ## Environnement
 
 - PC sous Windows, téléphone Android relié en USB (débogage USB activé).
-- .NET 10, WPF, C#. Exécution : `dotnet run -c Release`.
+- .NET 10, WPF, C#. Exécution : `dotnet run -c Release`. Tests : `dotnet test PhoneMirror.slnx` (xUnit, `tests/PhoneMirror.Tests`).
+- Dépôt GitHub privé : https://github.com/fauveauq/phone-mirror (branche `main`).
+- Installeur : `installer/build-installer.ps1` (Velopack, outil local `vpk` dans `dotnet-tools.json`) → `installer/out/PhoneMirror-win-Setup.exe`, installation par utilisateur dans `%LOCALAPPDATA%\PhoneMirror`. Mises à jour automatiques depuis les releases GitHub (`Core/AppUpdater.cs`, `-Publish`). Point d'entrée `Program.cs` (Velopack avant WPF).
+- Données utilisateur dans `%APPDATA%\PhoneMirror` (réglages, journal), jamais dans `%LOCALAPPDATA%\PhoneMirror` (dossier d'installation effacé à la désinstallation).
 - Pas d'iPhone à prendre en charge.
 
 ## Architecture
@@ -30,7 +33,11 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 | `Core/ScrcpyVideoStream.cs` | Protocole vidéo |
 | `Core/ScrcpyControlChannel.cs` | Messages de contrôle et presse-papiers du téléphone |
 | `Core/AdbDevices.cs` | Liste des appareils (`adb devices -l`) |
-| `Core/UserSettings.cs` | Réglages utilisateur (`%LOCALAPPDATA%\PhoneMirror\settings.json`) |
+| `Core/UserSettings.cs` | Réglages utilisateur (`%APPDATA%\PhoneMirror\settings.json`), y compris écran éteint, premier plan, position de la fenêtre |
+| `Core/FileTransfer.cs` | Envoi de fichiers (`adb push` vers Download) et installation d'APK |
+| `Core/AppUpdater.cs` | Mises à jour Velopack depuis les releases GitHub |
+| `UI/FileDropHandler.cs` | Glisser-déposer de fichiers sur la fenêtre |
+| `UI/FullScreenToggle.cs` | Plein écran (F11) |
 | `Input/MouseForwarder.cs` | Souris → toucher, défilement (×3), boutons |
 | `Input/KeyboardForwarder.cs` | Clavier → texte, touches Android, presse-papiers |
 | `Input/PhoneShortcuts.cs` | Raccourcis Alt+touche |
@@ -40,14 +47,14 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 | `Core/FrameExchange.cs` | Triple tampon décodage → affichage |
 | `Core/MirrorSession.cs` | Orchestration d'une session |
 | `Core/DeviceWatcher.cs` | Attente du téléphone (`adb get-state` chaque seconde) pour la reconnexion automatique |
-| `Core/AppLog.cs` | Journal dans `%LOCALAPPDATA%\PhoneMirror\journal.log` (statistiques toutes les 5 s) |
+| `Core/AppLog.cs` | Journal dans `%APPDATA%\PhoneMirror\journal.log` (statistiques toutes les 5 s) |
 | `MainWindow.xaml(.cs)` | Interface (F2 = statistiques) |
 
 ## Dépendances externes (dans `third_party`, non versionnées)
 
 - `third_party/adb/` : adb.exe, AdbWinApi.dll, AdbWinUsbApi.dll (Android SDK Platform-Tools).
 - `third_party/scrcpy-server` : fichier `scrcpy-server-v5.0.1` des releases GitHub de scrcpy, renommé, sans extension. Sa version doit égaler `ServerVersion` dans `Core/MirrorOptions.cs`.
-- `third_party/ffmpeg/` : DLL d'une build « shared » 64 bits de FFmpeg 9.0.1 (gyan.dev ou GyanD/codexffmpeg). La version majeure doit correspondre aux paquets FFmpeg.AutoGen.
+- `third_party/ffmpeg/` : build **LGPL** « shared » 64 bits de FFmpeg 9.0 (BtbN/FFmpeg-Builds), limitée à avcodec-63, avutil-61, swscale-10, swresample-7 + `LICENSE-FFmpeg.txt`. Ne pas utiliser de build GPL (« full ») : l'application est distribuée. La version majeure doit correspondre aux paquets FFmpeg.AutoGen.
 
 ## État actuel
 
@@ -65,6 +72,8 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 3. ~~Reconnexion automatique au rebranchement du câble.~~ Fait (abandon après 3 coupures en moins de 10 s).
 4. Décodage matériel (D3D11VA) et rendu Direct3D pour réduire encore la latence. En attente : la latence actuelle est jugée très bonne.
 5. ~~Réglages accessibles depuis l'interface (résolution, débit, appareil).~~ Fait (F3).
+6. ~~Confort : plein écran, glisser-déposer, écran éteint, premier plan, position mémorisée ; tests ; installeur.~~ Fait.
+7. Son du téléphone sur le PC (scrcpy `audio=true`, Opus, Android 11+) : modifie l'architecture, à valider avec l'utilisateur.
 
 ## Règles de travail
 

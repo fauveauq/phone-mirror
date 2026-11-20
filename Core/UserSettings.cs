@@ -3,14 +3,13 @@ using System.Text.Json;
 namespace PhoneMirror.Core;
 
 /// <summary>
-/// Réglages modifiables depuis l'interface, enregistrés dans %LOCALAPPDATA%\PhoneMirror\settings.json.
+/// Réglages modifiables depuis l'interface, enregistrés dans %APPDATA%\PhoneMirror\settings.json.
 /// </summary>
 public sealed record UserSettings
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-    public static string FilePath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhoneMirror", "settings.json");
+    public static string FilePath { get; } = Path.Combine(AppLog.DataDirectory, "settings.json");
 
     /// <summary>Numéro de série adb du téléphone ; null = le seul téléphone branché.</summary>
     public string? DeviceSerial { get; init; }

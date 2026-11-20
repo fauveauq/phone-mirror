@@ -54,7 +54,11 @@ public partial class MainWindow : Window
         Topmost = _settings.AlwaysOnTop;
         RestoreWindowBounds();
 
-        Loaded += async (_, _) => await ConnectAsync();
+        Loaded += async (_, _) =>
+        {
+            _ = CheckForUpdatesAsync();
+            await ConnectAsync();
+        };
         Closing += OnClosing;
         KeyDown += OnKeyDown;
         _statsTimer.Tick += (_, _) => UpdateStats();
@@ -367,6 +371,13 @@ public partial class MainWindow : Window
         Top = saved.Top;
         Width = saved.Width;
         Height = saved.Height;
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        string? version = await Task.Run(AppUpdater.DownloadPendingUpdateAsync);
+        if (version != null)
+            ShowToast($"La version {version} sera installée à la fermeture de Phone Mirror.");
     }
 
     private void ShowToast(string message)
