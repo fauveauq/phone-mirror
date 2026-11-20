@@ -30,6 +30,7 @@ public partial class SettingsWindow : Window
         AudioBox.IsChecked = current.EnableAudio;
         ScreenOffBox.IsChecked = current.TurnScreenOff;
         TopmostBox.IsChecked = current.AlwaysOnTop;
+        ShowClicksBox.IsChecked = current.ShowClicks;
 
         Loaded += async (_, _) => await LoadDevicesAsync();
     }
@@ -93,6 +94,7 @@ public partial class SettingsWindow : Window
             EnableAudio = AudioBox.IsChecked == true,
             TurnScreenOff = ScreenOffBox.IsChecked == true,
             AlwaysOnTop = TopmostBox.IsChecked == true,
+            ShowClicks = ShowClicksBox.IsChecked == true,
         };
         DialogResult = true;
     }

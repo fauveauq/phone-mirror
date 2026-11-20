@@ -87,7 +87,8 @@ Valeurs possibles : un dépôt GitHub (`https://github.com/…`), une adresse we
   - téléphone (utile quand plusieurs sont branchés), résolution, débit, images par seconde ;
   - son du téléphone sur le PC (activé par défaut ; pendant la recopie, le son ne sort plus du téléphone) ;
   - éteindre l'écran du téléphone pendant la recopie ;
-  - fenêtre toujours au premier plan.
+  - fenêtre toujours au premier plan ;
+  - montrer les clics par une onde (activé par défaut), pratique en partage d'écran.
 - **F11** : plein écran.
 - **Glisser-déposer** un fichier sur la fenêtre : un APK est installé, tout autre fichier est copié dans le dossier Téléchargements du téléphone.
 - La position et la taille de la fenêtre sont mémorisées.

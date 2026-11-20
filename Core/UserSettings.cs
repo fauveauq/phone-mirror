@@ -27,6 +27,9 @@ public sealed record UserSettings
     /// <summary>Éteint l'écran du téléphone pendant la recopie (batterie, discrétion).</summary>
     public bool TurnScreenOff { get; init; }
 
+    /// <summary>Onde affichée à chaque clic sur l'image du téléphone (partage d'écran, démonstrations).</summary>
+    public bool ShowClicks { get; init; } = true;
+
     /// <summary>Fenêtre toujours au premier plan.</summary>
     public bool AlwaysOnTop { get; init; }
 

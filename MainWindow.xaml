@@ -14,6 +14,9 @@
                SnapsToDevicePixels="True"
                Focusable="True" FocusVisualStyle="{x:Null}" />
 
+        <!-- Ondes de clic (purement visuelles, ne capturent pas la souris) -->
+        <Canvas x:Name="ClickLayer" IsHitTestVisible="False" ClipToBounds="True" />
+
         <!-- Statistiques, affichées ou masquées avec F2 -->
         <TextBlock x:Name="StatsText"
                    Margin="10" HorizontalAlignment="Left" VerticalAlignment="Top"

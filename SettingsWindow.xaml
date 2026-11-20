@@ -58,6 +58,8 @@
                   Content="Éteindre l'écran du téléphone pendant la recopie" />
         <CheckBox x:Name="TopmostBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
                   Content="Fenêtre toujours au premier plan" />
+        <CheckBox x:Name="ShowClicksBox" Margin="0,8,0,0" Foreground="#FFE6E8EE"
+                  Content="Montrer les clics par une onde (partage d'écran, démonstrations)" />
 
         <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="12" Foreground="#FF9AA0AC"
                    Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand le téléphone, la qualité ou le son changent." />
