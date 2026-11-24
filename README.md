@@ -14,6 +14,17 @@
 
 ---
 
+## Avant d'installer : compatibilité
+
+| Il vous faut | Non pris en charge |
+|---|---|
+| Un téléphone **Android 5** ou plus récent (Android 11 pour le son) | **iPhone et iPad** : Phone Mirror fonctionne uniquement avec Android |
+| Un PC **Windows 10 ou 11**, 64 bits | **Mac et Linux** |
+| Un **câble USB de données** | **Connexion sans fil** : uniquement par câble |
+| Le **débogage USB** autorisé sur le téléphone | **Téléphone géré par l'entreprise** (MDM, Intune…) : le débogage USB peut y être bloqué, vérifiez avant d'installer |
+
+---
+
 ## Installation
 
 ### 1. Sur le PC
