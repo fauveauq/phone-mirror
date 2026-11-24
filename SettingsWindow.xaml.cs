@@ -136,7 +136,7 @@ public partial class SettingsWindow : Window
         if (selected != null && apps.All(a => a.Package != selected))
             apps = [.. apps, new PhoneApp(selected, selected)];
         foreach (PhoneApp app in apps)
-            AppBox.Items.Add(new ComboBoxItem { Content = $"Seulement {app.Label}", Tag = app.Package, ToolTip = app.Package });
+            AppBox.Items.Add(new ComboBoxItem { Content = app.Label, Tag = app.Package, ToolTip = app.Package });
         AppBox.SelectedItem = AppBox.Items.Cast<ComboBoxItem>().First(i => (string?)i.Tag == selected);
     }
 
