@@ -10,7 +10,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <RootNamespace>PhoneMirror</RootNamespace>
     <AssemblyName>PhoneMirror</AssemblyName>
-    <Version>1.4.1</Version>
+    <Version>1.4.2</Version>
     <!-- Main personnalisé (Program.cs) pour initialiser Velopack avant WPF. -->
     <StartupObject>PhoneMirror.Program</StartupObject>
     <!-- Icône générée par Assets\make-icon.ps1 -->
