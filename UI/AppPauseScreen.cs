@@ -75,10 +75,10 @@ public sealed class AppPauseScreen
     private void Show()
     {
         string name = _session?.AppLabel ?? _package;
-        if (_state == AppScreenState.Locked)
+        if (_state == AppScreenState.Asleep)
         {
-            _title.Text = "Téléphone verrouillé";
-            _detail.Text = "Le téléphone est en veille ou verrouillé : il ignore les clics. Déverrouillez-le pour reprendre la démonstration.";
+            _title.Text = "Téléphone en veille";
+            _detail.Text = "Le téléphone s'est mis en veille et ignore les clics. Réveillez-le pour reprendre la démonstration.";
             _relaunch.Content = "Réveiller le téléphone";
         }
         else
@@ -95,8 +95,8 @@ public sealed class AppPauseScreen
     private void Relaunch()
     {
         if (_session?.Control is not { } control) return;
-        if (_state == AppScreenState.Locked)
-            control.PressKey(AndroidKeys.Wakeup); // le code PIN éventuel reste à saisir sur le téléphone
+        if (_state == AppScreenState.Asleep)
+            control.PressKey(AndroidKeys.Wakeup); // l'écran virtuel n'a pas besoin d'être déverrouillé
         else
             control.StartApp(_package);
     }

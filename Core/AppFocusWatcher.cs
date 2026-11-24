@@ -9,8 +9,8 @@ public enum AppScreenState
     Visible,
     /// <summary>Une autre application, ou aucune, est au premier plan.</summary>
     OtherApp,
-    /// <summary>Téléphone en veille ou verrouillé : les clics sont ignorés.</summary>
-    Locked,
+    /// <summary>Téléphone entièrement en veille : les clics sont ignorés.</summary>
+    Asleep,
 }
 
 /// <summary>
@@ -51,14 +51,16 @@ public sealed partial class AppFocusWatcher : IAsyncDisposable
         topPackage != null && (topPackage == package || AllowedOverlays.Contains(topPackage));
 
     /// <summary>
-    /// Déduit l'état de la sortie combinée de dumpsys power, window et activity. En veille ou verrouillé,
+    /// Déduit l'état de la sortie combinée de dumpsys power et activity. Si tout le téléphone est en veille,
     /// Android ignore les clics même si l'application paraît encore au premier plan.
+    /// Le verrouillage seul ne gêne pas : l'écran virtuel est « toujours déverrouillé » (FLAG_ALWAYS_UNLOCKED)
+    /// et forme son propre groupe d'écrans, il continue de fonctionner téléphone verrouillé.
     /// </summary>
     internal static AppScreenState Evaluate(string output, int displayId, string package)
     {
         Match wakefulness = WakefulnessRegex().Match(output);
-        if ((wakefulness.Success && wakefulness.Groups[1].Value != "Awake") || output.Contains("isKeyguardShowing=true", StringComparison.Ordinal))
-            return AppScreenState.Locked;
+        if (wakefulness.Success && wakefulness.Groups[1].Value != "Awake")
+            return AppScreenState.Asleep;
 
         return IsAppVisible(PhoneApps.TopPackage(output, displayId), package) ? AppScreenState.Visible : AppScreenState.OtherApp;
     }
@@ -77,7 +79,7 @@ public sealed partial class AppFocusWatcher : IAsyncDisposable
                 {
                     // Filtré sur le téléphone : la sortie complète de dumpsys est volumineuse.
                     string output = await _adb.RunAsync(CommandTimeout, ct, "shell",
-                        "dumpsys power | grep mWakefulness=; dumpsys window | grep isKeyguardShowing; " +
+                        "dumpsys power | grep mWakefulness=; " +
                         "dumpsys activity activities | grep -E 'Display #|topResumedActivity'").ConfigureAwait(false);
                     AppScreenState state = Evaluate(output, id, _package);
                     if (state != _state)
