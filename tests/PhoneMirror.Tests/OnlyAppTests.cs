@@ -76,23 +76,24 @@ public class OnlyAppTests
     }
 
     [Fact]
-    public void Launchable_keeps_user_apps_present_in_the_launcher()
+    public void ParseAppList_keeps_user_apps_with_their_label_sorted_by_name()
     {
-        const string activities = """
-            181 activities found:
-              Activity #0:
-                priority=500 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
-                com.sec.android.gallery3d/com.samsung.android.gallery.app.activity.GalleryActivity
-              Activity #1:
-                com.salesforce.fieldservice.app/com.salesforce.fieldservice.ui.launcher.AppLaunchActivity
-              Activity #2:
-                com.salesforce.chatter/.Chatter
-              Activity #3:
-                com.salesforce.chatter/.Other
+        const string output = """
+            [server] INFO: Device: [samsung] samsung SM-G980F (Android 13)
+            [server] INFO: List of apps:
+             * Appareil photo                 com.sec.android.app.camera
+             - Field Service                  com.salesforce.fieldservice.app
+             - Claude                         com.anthropic.claude
+             - Mes Démarches Pro              fr.example.demarches
             """;
-        const string thirdParty = "package:com.salesforce.chatter\r\npackage:com.salesforce.fieldservice.app\r\npackage:com.example.noicon\r\n";
 
-        Assert.Equal(["com.salesforce.chatter", "com.salesforce.fieldservice.app"], PhoneApps.Launchable(activities, thirdParty));
+        Assert.Equal(
+            [
+                new PhoneApp("Claude", "com.anthropic.claude"),
+                new PhoneApp("Field Service", "com.salesforce.fieldservice.app"),
+                new PhoneApp("Mes Démarches Pro", "fr.example.demarches"),
+            ],
+            PhoneApps.ParseAppList(output));
     }
 
     [Fact]

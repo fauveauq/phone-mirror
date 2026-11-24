@@ -300,7 +300,7 @@ public partial class MainWindow : Window
     /// <summary>Ouvre les réglages ; s'ils changent, ils sont enregistrés et la recopie redémarre.</summary>
     private async void OpenSettings()
     {
-        var dialog = new SettingsWindow(_settings, _options.AdbPath) { Owner = this };
+        var dialog = new SettingsWindow(_settings, MirrorOptions.CreateDefault()) { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Result == _settings) return;
 
         UserSettings previous = _settings;

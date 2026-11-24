@@ -15,16 +15,16 @@ public partial class SettingsWindow : Window
     private static readonly int[] FpsValues = [30, 60, 90, 120];
 
     private readonly UserSettings _current;
-    private readonly string _adbPath;
+    private readonly MirrorOptions _defaults;
 
     /// <summary>Réglages choisis, valables si la fenêtre a renvoyé true.</summary>
     public UserSettings Result { get; private set; }
 
-    public SettingsWindow(UserSettings current, string adbPath)
+    public SettingsWindow(UserSettings current, MirrorOptions defaults)
     {
         InitializeComponent();
         _current = current;
-        _adbPath = adbPath;
+        _defaults = defaults;
         Result = current;
 
         Fill(SizeBox, Sizes, current.MaxSize, v => v == 0 ? "Native (la plus nette)" : $"{v} px");
@@ -87,7 +87,7 @@ public partial class SettingsWindow : Window
         IReadOnlyList<AdbDevice> devices;
         try
         {
-            devices = await AdbDevices.ListAsync(_adbPath, CancellationToken.None);
+            devices = await AdbDevices.ListAsync(_defaults.AdbPath, CancellationToken.None);
         }
         catch (AdbException ex)
         {
@@ -114,10 +114,10 @@ public partial class SettingsWindow : Window
         string? selected = AppBox.SelectedItem is ComboBoxItem item ? item.Tag as string : _current.OnlyApp;
         string? serial = (DeviceBox.SelectedItem as ComboBoxItem)?.Tag as string;
 
-        IReadOnlyList<string> apps;
+        IReadOnlyList<PhoneApp> apps;
         try
         {
-            apps = await PhoneApps.ListLaunchableAsync(_adbPath, serial, CancellationToken.None);
+            apps = await PhoneApps.ListAsync(_defaults with { DeviceSerial = serial }, CancellationToken.None);
         }
         catch (AdbException ex)
         {
@@ -128,12 +128,15 @@ public partial class SettingsWindow : Window
         FillApps(apps, selected);
     }
 
-    private void FillApps(IReadOnlyList<string> apps, string? selected)
+    private void FillApps(IReadOnlyList<PhoneApp> apps, string? selected)
     {
         AppBox.Items.Clear();
         AppBox.Items.Add(new ComboBoxItem { Content = "Tout l'écran du téléphone", Tag = null });
-        foreach (string app in selected == null || apps.Contains(selected) ? apps : apps.Append(selected))
-            AppBox.Items.Add(new ComboBoxItem { Content = $"Seulement {app}", Tag = app });
+        // Application choisie mais absente de la liste (téléphone non branché) : affichée par son paquet.
+        if (selected != null && apps.All(a => a.Package != selected))
+            apps = [.. apps, new PhoneApp(selected, selected)];
+        foreach (PhoneApp app in apps)
+            AppBox.Items.Add(new ComboBoxItem { Content = $"Seulement {app.Label}", Tag = app.Package, ToolTip = app.Package });
         AppBox.SelectedItem = AppBox.Items.Cast<ComboBoxItem>().First(i => (string?)i.Tag == selected);
     }
 

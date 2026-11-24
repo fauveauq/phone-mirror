@@ -3,41 +3,39 @@ using System.Text.RegularExpressions;
 
 namespace PhoneMirror.Core;
 
-/// <summary>
-/// Applications du téléphone : celles qu'on peut afficher seules, et celle au premier plan d'un écran donné.
-/// Toujours pour l'utilisateur principal (0) : un Dossier sécurisé Samsung fait échouer
-/// les commandes qui portent sur tous les utilisateurs.
-/// </summary>
+/// <summary>Application du téléphone : nom affiché et nom de paquet.</summary>
+public sealed record PhoneApp(string Label, string Package);
+
+/// <summary>Applications du téléphone : celles qu'on peut afficher seules, et celle au premier plan d'un écran donné.</summary>
 public static partial class PhoneApps
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
+    private const string ListJarPath = "/data/local/tmp/phone-mirror-apps.jar";
+    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
 
-    /// <summary>Applications installées par l'utilisateur et présentes dans le lanceur, triées.</summary>
-    public static async Task<IReadOnlyList<string>> ListLaunchableAsync(string adbPath, string? serial, CancellationToken ct)
+    /// <summary>
+    /// Applications installées par l'utilisateur, avec leur nom affiché, triées par nom.
+    /// Utilise l'option list_apps du serveur scrcpy, qui efface lui-même son fichier en sortant.
+    /// </summary>
+    public static async Task<IReadOnlyList<PhoneApp>> ListAsync(MirrorOptions options, CancellationToken ct)
     {
-        var adb = new AdbRunner(adbPath, serial);
-        string launchable = await adb.RunAsync(Timeout, ct, "shell", "cmd", "package", "query-activities", "--brief",
-            "--user", "0", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER").ConfigureAwait(false);
-        string installed = await adb.RunAsync(Timeout, ct, "shell", "pm", "list", "packages", "-3", "--user", "0")
-            .ConfigureAwait(false);
-        return Launchable(launchable, installed);
+        var adb = new AdbRunner(options.AdbPath, options.DeviceSerial);
+        await adb.RunAsync(Timeout, ct, "push", options.ServerJarPath, ListJarPath).ConfigureAwait(false);
+        string output = await adb.RunAsync(Timeout, ct, "shell", $"CLASSPATH={ListJarPath}",
+            "app_process", "/", "com.genymobile.scrcpy.Server", options.ServerVersion, "list_apps=true").ConfigureAwait(false);
+        return ParseAppList(output);
     }
 
-    /// <summary>Croise « query-activities » (paquet/activité) et « pm list packages -3 » (package:nom).</summary>
-    internal static List<string> Launchable(string queryActivitiesOutput, string thirdPartyOutput)
-    {
-        HashSet<string> thirdParty = thirdPartyOutput.Split('\n', StringSplitOptions.TrimEntries)
-            .Where(l => l.StartsWith("package:", StringComparison.Ordinal))
-            .Select(l => l["package:".Length..])
-            .ToHashSet(StringComparer.Ordinal);
-
-        return ComponentRegex().Matches(queryActivitiesOutput)
-            .Select(m => m.Groups[1].Value)
-            .Where(thirdParty.Contains)
-            .Distinct(StringComparer.Ordinal)
-            .Order(StringComparer.OrdinalIgnoreCase)
+    /// <summary>
+    /// Lit la liste du serveur : « - Field Service      com.salesforce.fieldservice.app ».
+    /// « - » = installée par l'utilisateur, « * » = application système (écartée).
+    /// </summary>
+    internal static List<PhoneApp> ParseAppList(string output) =>
+        AppLineRegex().Matches(output)
+            .Where(m => m.Groups[1].Value == "-")
+            .Select(m => new PhoneApp(m.Groups[2].Value.Trim(), m.Groups[3].Value))
+            .DistinctBy(a => a.Package)
+            .OrderBy(a => a.Label, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
-    }
 
     /// <summary>
     /// Paquet de l'activité au premier plan sur l'écran <paramref name="displayId"/>, d'après
@@ -63,9 +61,8 @@ public static partial class PhoneApps
         return null;
     }
 
-    // « com.salesforce.chatter/.Chatter » dans la sortie de query-activities.
-    [GeneratedRegex(@"^\s*([A-Za-z0-9_.]+)/\S+\s*$", RegexOptions.Multiline)]
-    private static partial Regex ComponentRegex();
+    [GeneratedRegex(@"^\s*([*-])\s+(.+?)\s+([A-Za-z0-9_.]+)\s*$", RegexOptions.Multiline)]
+    private static partial Regex AppLineRegex();
 
     [GeneratedRegex(@"^\s*Display #(\d+)")]
     private static partial Regex DisplayRegex();
