@@ -57,7 +57,7 @@
                     <Button Content="Réglages" Padding="20,8" Margin="10,0,0,0" Click="OnSettingsClick" />
                 </StackPanel>
                 <TextBlock Margin="0,18,0,0" FontSize="11" Foreground="#FF7C818C" TextAlignment="Center"
-                           Text="F2 : statistiques · F3 : réglages · F11 : plein écran" />
+                           Text="F1 : raccourcis · F2 : statistiques · F3 : réglages · F11 : plein écran" />
             </StackPanel>
         </Border>
     </Grid>

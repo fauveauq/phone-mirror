@@ -149,6 +149,8 @@ public partial class SettingsWindow : Window
 
     private async void OnRefreshClick(object sender, RoutedEventArgs e) => await LoadDevicesAsync();
 
+    private void OnHelpClick(object sender, RoutedEventArgs e) => new ShortcutsWindow { Owner = this }.ShowDialog();
+
     private void OnSaveClick(object sender, RoutedEventArgs e)
     {
         Result = _current with

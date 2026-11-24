@@ -277,7 +277,11 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F2)
+        if (e.Key == Key.F1)
+        {
+            new ShortcutsWindow { Owner = this }.ShowDialog();
+        }
+        else if (e.Key == Key.F2)
         {
             StatsText.Visibility = StatsText.Visibility == Visibility.Visible
                 ? Visibility.Collapsed

@@ -50,7 +50,8 @@ Application Windows qui affiche en temps réel l'écran d'un téléphone Android
 | `Input/KeyboardForwarder.cs` | Clavier → texte, touches Android, presse-papiers |
 | `Input/PhoneShortcuts.cs` | Raccourcis Alt+touche |
 | `Input/AndroidKeys.cs` | Codes de touches Android |
-| `SettingsWindow.xaml(.cs)` | Réglages (F3) |
+| `SettingsWindow.xaml(.cs)` | Réglages (F3), bouton « ? » vers l'aide |
+| `ShortcutsWindow.xaml(.cs)`, `UI/ShortcutCatalog.cs` | Aide des raccourcis (F1) ; liste à tenir à jour avec `Input/*.cs` |
 | `Core/MediaPacketReader.cs` | En-têtes de 12 octets, commun vidéo et audio |
 | `Core/ScrcpyAudioStream.cs` | Flux audio (en-tête, paquets) |
 | `Core/AudioPipeline.cs` | Thread audio : lecture, décodage, lecture sur le PC |

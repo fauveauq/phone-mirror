@@ -93,9 +93,31 @@
         <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="12" Foreground="#FF9AA0AC"
                    Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand le téléphone, l'affichage, la qualité ou le son changent." />
 
-        <StackPanel Margin="0,20,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Enregistrer" IsDefault="True" Click="OnSaveClick" />
-            <Button Content="Annuler" IsCancel="True" Margin="8,0,0,0" />
-        </StackPanel>
+        <DockPanel Margin="0,20,0,0" LastChildFill="False">
+            <!-- Aide : liste des raccourcis -->
+            <Button DockPanel.Dock="Left" Content="?" MinWidth="0" Padding="0" Width="32" Height="32"
+                    ToolTip="Raccourcis clavier et souris (F1)" Cursor="Hand" Click="OnHelpClick">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Ellipse x:Name="Disc" Fill="#FF2563EB" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextElement.Foreground="White" TextElement.FontWeight="Bold"
+                                              TextElement.FontSize="17" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Disc" Property="Fill" Value="#FF3B82F6" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Disc" Property="Fill" Value="#FF1D4ED8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <Button DockPanel.Dock="Right" Content="Annuler" IsCancel="True" Margin="8,0,0,0" />
+            <Button DockPanel.Dock="Right" Content="Enregistrer" IsDefault="True" Click="OnSaveClick" />
+        </DockPanel>
     </StackPanel>
 </Window>

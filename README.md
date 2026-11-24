@@ -76,11 +76,13 @@ Tapez directement au clavier : le texte arrive sur le téléphone, accents compr
 | **Alt+H** | Accueil |
 | **Alt+B** | Retour |
 | **Alt+S** | Applications récentes |
+| **Alt+M** | Menu |
 | **Alt+↑** / **Alt+↓** | Volume + / − |
 | **Alt+P** | Bouton marche/arrêt |
 | **Alt+N** / **Alt+Maj+N** | Ouvrir / fermer les notifications |
 | **Alt+R** | Faire pivoter l'écran du téléphone |
 | **Alt+O** / **Alt+Maj+O** | Éteindre / rallumer l'écran du téléphone (la recopie continue) |
+| **F1** | Liste des raccourcis (aussi : bouton **?** des réglages) |
 | **F2** | Afficher ou masquer les statistiques (images par seconde) |
 | **F3** | Réglages |
 | **F11** | Plein écran |
