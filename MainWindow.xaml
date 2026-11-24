@@ -23,6 +23,19 @@
                    FontFamily="Consolas" FontSize="12" Foreground="#C0FFFFFF"
                    Visibility="Collapsed" IsHitTestVisible="False" />
 
+        <!-- Mode « une seule application » : couvre l'image quand l'application n'est plus affichée -->
+        <Border x:Name="AppPauseOverlay" Background="#FF101114" Visibility="Collapsed">
+            <StackPanel MaxWidth="320" Margin="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock x:Name="AppPauseTitle"
+                           FontSize="20" FontWeight="SemiBold" Foreground="White"
+                           TextAlignment="Center" TextWrapping="Wrap" />
+                <TextBlock x:Name="AppPauseDetail"
+                           Margin="0,10,0,0" FontSize="13" Foreground="#FFB8BCC6"
+                           TextAlignment="Center" TextWrapping="Wrap" />
+                <Button x:Name="AppRelaunchButton" Margin="0,22,0,0" Padding="20,8" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
         <!-- Message bref (envoi de fichiers…), en bas de la fenêtre -->
         <Border x:Name="Toast" Visibility="Collapsed" IsHitTestVisible="False"
                 VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="12,0,12,24"

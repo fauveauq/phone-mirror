@@ -27,9 +27,11 @@ Le guide d'installation et d'utilisation se trouve dans le [README](README.md). 
 | `Core/MirrorSession.cs` | Orchestration d'une session |
 | `Core/UserSettings.cs` | Réglages enregistrés |
 | `Core/AppUpdater.cs` | Mises à jour (Velopack) |
+| `Core/PhoneApps.cs`, `Core/AppFocusWatcher.cs` | Mode « une seule application » : liste des applications, application au premier plan de l'écran virtuel |
+| `Core/DisplayGeometry.cs`, `Core/ServerMessages.cs` | Taille de l'écran virtuel, informations lues dans le journal du serveur |
 | `Core/AppLog.cs` | Journal de diagnostic |
 | `Input/*.cs` | Souris, clavier et raccourcis transmis au téléphone |
-| `UI/*.cs` | Plein écran, glisser-déposer, ondes de clic |
+| `UI/*.cs` | Plein écran, glisser-déposer, ondes de clic, écran « Démonstration en pause » |
 | `MainWindow.xaml(.cs)` | Fenêtre principale |
 | `SettingsWindow.xaml(.cs)` | Fenêtre de réglages |
 

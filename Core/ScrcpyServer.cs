@@ -39,8 +39,29 @@ public sealed class ScrcpyServer(MirrorOptions options, Action<string> log) : IA
             .ConfigureAwait(false);
         _forwardActive = true;
 
+        DisplayGeometry? display = null;
+        if (options.OnlyApp != null)
+        {
+            display = await ReadDisplayGeometryAsync(ct).ConfigureAwait(false);
+            log($"Écran virtuel {display} pour {options.OnlyApp}");
+        }
+
         log("Démarrage du serveur…");
-        _process = _adb.StartLongRunning(OnServerOutput,
+        _process = _adb.StartLongRunning(OnServerOutput, [.. BuildArguments(display)]);
+    }
+
+    private async Task<DisplayGeometry> ReadDisplayGeometryAsync(CancellationToken ct)
+    {
+        string size = await _adb.RunAsync(CommandTimeout, ct, "shell", "wm", "size").ConfigureAwait(false);
+        string density = await _adb.RunAsync(CommandTimeout, ct, "shell", "wm", "density").ConfigureAwait(false);
+        return DisplayGeometry.Parse(size, density)
+            ?? throw new AdbException("Taille de l'écran du téléphone illisible :" + Environment.NewLine + size + density);
+    }
+
+    private IEnumerable<string> BuildArguments(DisplayGeometry? display)
+    {
+        string[] common =
+        [
             "shell",
             $"CLASSPATH={RemoteJarPath}",
             "app_process", "/", "com.genymobile.scrcpy.Server", options.ServerVersion,
@@ -53,7 +74,17 @@ public sealed class ScrcpyServer(MirrorOptions options, Action<string> log) : IA
             $"max_size={options.MaxSize}",
             $"video_bit_rate={options.VideoBitRate}",
             $"max_fps={options.MaxFps}",
-            "log_level=info");
+            "log_level=info",
+        ];
+        foreach (string arg in common)
+            yield return arg;
+
+        if (options.OnlyApp != null && display is { } geometry)
+        {
+            // Écran virtuel à la taille de l'écran du téléphone, sans accueil ni barre système :
+            // si l'application se ferme, il reste vide au lieu de montrer autre chose.
+            yield return $"new_display={geometry}";
+        }
     }
 
     private async Task EnsureDeviceReadyAsync(CancellationToken ct)
@@ -74,9 +105,17 @@ public sealed class ScrcpyServer(MirrorOptions options, Action<string> log) : IA
             throw new AdbException($"Le téléphone est dans l'état « {state} ». Déverrouille-le et accepte le débogage USB.");
     }
 
+    /// <summary>Écran virtuel créé par le serveur (mode « une seule application »), une fois annoncé.</summary>
+    public int? VirtualDisplayId { get; private set; }
+
+    /// <summary>Nom affiché de l'application lancée, une fois annoncé par le serveur.</summary>
+    public string? StartedAppLabel { get; private set; }
+
     private void OnServerOutput(string line)
     {
         log("[serveur] " + line);
+        VirtualDisplayId = ServerMessages.VirtualDisplayId(line) ?? VirtualDisplayId;
+        StartedAppLabel = ServerMessages.StartedAppLabel(line) ?? StartedAppLabel;
         _recentOutput.Enqueue(line);
         while (_recentOutput.Count > RecentOutputLines) _recentOutput.TryDequeue(out _);
     }

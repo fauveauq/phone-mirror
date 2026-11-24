@@ -14,6 +14,7 @@ namespace PhoneMirror;
 public partial class MainWindow : Window
 {
     private UserSettings _settings = UserSettings.Load();
+    private readonly AppPauseScreen _appPause;
     private MirrorOptions _options;
     private readonly DispatcherTimer _statsTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
@@ -43,10 +44,12 @@ public partial class MainWindow : Window
         InitializeComponent();
         _options = _settings.ApplyTo(MirrorOptions.CreateDefault());
         _deviceWatcher = new DeviceWatcher(_options);
+        _appPause = new AppPauseScreen(AppPauseOverlay, AppPauseTitle, AppPauseDetail, AppRelaunchButton);
 
         // Souris et clavier transmis au téléphone tant qu'une session est active.
         _ = new MouseForwarder(VideoImage, () => _session?.Control);
-        _ = new KeyboardForwarder(this, () => _session?.Control);
+        // L'écran d'attente couvre déjà la souris ; le clavier est coupé pendant qu'il est affiché.
+        _ = new KeyboardForwarder(this, () => _appPause.IsCovering ? null : _session?.Control);
         _ = new FileDropHandler(this, () => _session?.Control != null ? _options : null, ShowToast);
 
         // Ondes de clic : vers l'extérieur pour le toucher (gauche), vers l'intérieur pour le retour (droit).
@@ -106,7 +109,9 @@ public partial class MainWindow : Window
             {
                 session.Control.ClipboardReceived += text => Dispatcher.InvokeAsync(() => SetPcClipboard(text));
                 if (_settings.TurnScreenOff) session.Control.SetDisplayPower(false);
+                if (_options.OnlyApp is { } app) session.Control.StartApp(app);
             }
+            _appPause.Start(session, _options);
             HideStatus();
             _sessionStartedAt = DateTime.UtcNow;
             _statsTimer.Start();
@@ -190,6 +195,7 @@ public partial class MainWindow : Window
     private async Task StopSessionAsync()
     {
         _statsTimer.Stop();
+        await _appPause.StopAsync();
 
         _connectCts?.Cancel();
         _connectCts?.Dispose();

@@ -37,6 +37,7 @@ public sealed class ScrcpyControlChannel : IDisposable
     private const byte TypeGetClipboard = 8;
     private const byte TypeSetClipboard = 9;
     private const byte TypeSetDisplayPower = 10;
+    private const byte TypeStartApp = 16;
 
     private const byte DeviceMessageClipboard = 0;
     private const byte DeviceMessageAckClipboard = 1;
@@ -140,6 +141,20 @@ public sealed class ScrcpyControlChannel : IDisposable
 
     /// <summary>Éteint ou rallume l'écran du téléphone sans couper la recopie.</summary>
     public void SetDisplayPower(bool on) => Send([TypeSetDisplayPower, on ? (byte)1 : (byte)0]);
+
+    /// <summary>Lance une application (nom de paquet) sur l'écran recopié.</summary>
+    public void StartApp(string packageName)
+    {
+        byte[] name = Encoding.UTF8.GetBytes(packageName);
+        if (name.Length is 0 or > byte.MaxValue)
+            throw new ArgumentException("Nom de paquet invalide.", nameof(packageName));
+
+        var message = new byte[2 + name.Length];
+        message[0] = TypeStartApp;
+        message[1] = (byte)name.Length;
+        name.CopyTo(message, 2);
+        Send(message);
+    }
 
     public void Send(PhoneCommand command) => Send([(byte)command]);
 

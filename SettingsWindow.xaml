@@ -33,6 +33,7 @@
                 <RowDefinition />
                 <RowDefinition />
                 <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Text="Téléphone" />
@@ -42,14 +43,18 @@
                 <ComboBox x:Name="DeviceBox" />
             </DockPanel>
 
-            <TextBlock Grid.Row="1" Text="Résolution max." />
-            <ComboBox x:Name="SizeBox" Grid.Row="1" Grid.Column="2" />
+            <TextBlock Grid.Row="1" Text="Afficher" />
+            <ComboBox x:Name="AppBox" Grid.Row="1" Grid.Column="2"
+                      ToolTip="Pour une démonstration : seule l'application choisie apparaît, sur un écran virtuel. Le reste du téléphone n'est jamais affiché." />
 
-            <TextBlock Grid.Row="2" Text="Débit vidéo" />
-            <ComboBox x:Name="BitRateBox" Grid.Row="2" Grid.Column="2" />
+            <TextBlock Grid.Row="2" Text="Résolution max." />
+            <ComboBox x:Name="SizeBox" Grid.Row="2" Grid.Column="2" />
 
-            <TextBlock Grid.Row="3" Text="Images par seconde" />
-            <ComboBox x:Name="FpsBox" Grid.Row="3" Grid.Column="2" />
+            <TextBlock Grid.Row="3" Text="Débit vidéo" />
+            <ComboBox x:Name="BitRateBox" Grid.Row="3" Grid.Column="2" />
+
+            <TextBlock Grid.Row="4" Text="Images par seconde" />
+            <ComboBox x:Name="FpsBox" Grid.Row="4" Grid.Column="2" />
         </Grid>
 
         <CheckBox x:Name="AudioBox" Margin="0,12,0,0" Foreground="#FFE6E8EE"
@@ -86,7 +91,7 @@
         </Grid>
 
         <TextBlock Margin="0,12,0,0" TextWrapping="Wrap" FontSize="12" Foreground="#FF9AA0AC"
-                   Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand le téléphone, la qualité ou le son changent." />
+                   Text="Une résolution ou un débit plus élevés améliorent la netteté mais chargent davantage le téléphone et le PC. La recopie redémarre quand le téléphone, l'affichage, la qualité ou le son changent." />
 
         <StackPanel Margin="0,20,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Enregistrer" IsDefault="True" Click="OnSaveClick" />

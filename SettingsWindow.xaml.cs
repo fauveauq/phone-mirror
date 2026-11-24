@@ -35,8 +35,10 @@ public partial class SettingsWindow : Window
         TopmostBox.IsChecked = current.AlwaysOnTop;
         ShowClicksBox.IsChecked = current.ShowClicks;
         FillClickOptions(current);
+        FillApps([], current.OnlyApp); // complétée une fois la liste lue sur le téléphone
 
         Loaded += async (_, _) => await LoadDevicesAsync();
+        DeviceBox.SelectionChanged += async (_, _) => await LoadAppsAsync();
     }
 
     private void FillClickOptions(UserSettings current)
@@ -106,6 +108,35 @@ public partial class SettingsWindow : Window
         DeviceBox.SelectedItem = DeviceBox.Items.Cast<ComboBoxItem>().First(i => (string?)i.Tag == selected);
     }
 
+    /// <summary>Applications proposées pour le mode « une seule application », lues sur le téléphone choisi.</summary>
+    private async Task LoadAppsAsync()
+    {
+        string? selected = AppBox.SelectedItem is ComboBoxItem item ? item.Tag as string : _current.OnlyApp;
+        string? serial = (DeviceBox.SelectedItem as ComboBoxItem)?.Tag as string;
+
+        IReadOnlyList<string> apps;
+        try
+        {
+            apps = await PhoneApps.ListLaunchableAsync(_adbPath, serial, CancellationToken.None);
+        }
+        catch (AdbException ex)
+        {
+            AppLog.Write("Liste des applications impossible : " + ex.Message);
+            apps = [];
+        }
+
+        FillApps(apps, selected);
+    }
+
+    private void FillApps(IReadOnlyList<string> apps, string? selected)
+    {
+        AppBox.Items.Clear();
+        AppBox.Items.Add(new ComboBoxItem { Content = "Tout l'écran du téléphone", Tag = null });
+        foreach (string app in selected == null || apps.Contains(selected) ? apps : apps.Append(selected))
+            AppBox.Items.Add(new ComboBoxItem { Content = $"Seulement {app}", Tag = app });
+        AppBox.SelectedItem = AppBox.Items.Cast<ComboBoxItem>().First(i => (string?)i.Tag == selected);
+    }
+
     private static string DescribeState(string state) => state switch
     {
         "unauthorized" => "autorisation à accepter sur le téléphone",
@@ -120,6 +151,7 @@ public partial class SettingsWindow : Window
         Result = _current with
         {
             DeviceSerial = (DeviceBox.SelectedItem as ComboBoxItem)?.Tag as string,
+            OnlyApp = (AppBox.SelectedItem as ComboBoxItem)?.Tag as string,
             MaxSize = SelectedValue(SizeBox),
             VideoBitRateMbps = SelectedValue(BitRateBox),
             MaxFps = SelectedValue(FpsBox),

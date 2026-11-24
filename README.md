@@ -6,6 +6,7 @@
 - Le son du téléphone sort sur le PC (Android 11 ou plus récent).
 - Souris, clavier et copier-coller entre le PC et le téléphone.
 - Pratique en réunion ou en démonstration : chaque clic est signalé par une petite onde visible par les autres participants.
+- **Mode démonstration** : n'afficher qu'une seule application (par exemple Salesforce Field Service), sans jamais montrer le reste du téléphone.
 - Rien à installer sur le téléphone, aucun compte, aucune connexion Internet : tout passe par le câble.
 - Mises à jour automatiques.
 
@@ -90,11 +91,26 @@ Faites glisser un fichier sur la fenêtre :
 | Son du téléphone sur le PC | Activé par défaut. Pendant la recopie, le son sort du PC et plus du téléphone. |
 | Éteindre l'écran du téléphone | Économise la batterie et garde le contenu discret ; la recopie continue sur le PC |
 | Toujours au premier plan | La fenêtre reste au-dessus des autres |
+| Afficher | Tout l'écran du téléphone, ou **une seule application** (voir ci-dessous) |
 | Clics | Montrer ou masquer les ondes de clic, et choisir leur style (onde et point, onde seule ou point seul), leur couleur et leur taille |
 
 La position et la taille de la fenêtre sont mémorisées d'une fois sur l'autre.
 
 ---
+
+### Mode démonstration : une seule application
+
+Pour une démonstration, par exemple simuler le travail d'un technicien sur le terrain avec Salesforce Field Service, choisissez dans **F3 › Afficher** l'application à montrer.
+
+- Phone Mirror crée un **écran virtuel** sur le téléphone et y lance l'application. Seul cet écran est envoyé au PC : la barre d'état, les notifications, l'écran d'accueil et les autres applications n'apparaissent jamais.
+- Si l'application est quittée ou fermée, l'image est remplacée par l'écran **« Démonstration en pause »**, avec un bouton pour la relancer.
+- L'écran du téléphone reste libre pendant ce temps : vous pouvez vous en servir sans que ce soit diffusé.
+- **Connectez-vous à l'application en mode normal avant la démonstration.** Beaucoup d'écrans de connexion sont protégés contre la capture et s'afficheraient en noir.
+
+Limites :
+- Le son reste celui de tout le téléphone.
+- Les demandes d'autorisation Android s'affichent, mais si l'application ouvre une autre application (appareil photo, navigation GPS…), l'écran passe en pause.
+- Le clavier du téléphone peut s'ouvrir sur l'écran physique : utilisez plutôt le clavier du PC.
 
 ## Mises à jour
 
@@ -115,6 +131,9 @@ Le son demande Android 11 ou plus récent. Certaines applications interdisent la
 
 **Pendant un appel téléphonique, le son reste sur le téléphone.**
 C'est une limite d'Android, qui isole le son des appels. Pour téléphoner depuis le PC, utilisez **Lien avec Windows** (Phone Link) en Bluetooth : il fonctionne en même temps que Phone Mirror.
+
+**L'écran est noir alors que l'application est ouverte.**
+L'écran affiché est protégé contre la capture, comme c'est souvent le cas pour un écran de connexion ou de paiement. Aucune application de recopie ne peut l'afficher. Connectez-vous d'abord sur le téléphone. Si tous les écrans restent noirs, c'est la politique de sécurité de l'application ou de l'organisation qui interdit la capture.
 
 **L'image est moins nette en mode paysage.**
 Dans F3, choisissez la résolution **Native** et un débit plus élevé.

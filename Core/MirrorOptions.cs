@@ -34,6 +34,12 @@ public sealed record MirrorOptions
     /// <summary>Contrôle du téléphone depuis le PC (souris, clavier, presse-papiers).</summary>
     public bool EnableControl { get; init; } = true;
 
+    /// <summary>
+    /// Paquet Android à afficher seul (ex. com.salesforce.fieldservice.app) ; null pour tout l'écran.
+    /// L'application est lancée sur un écran virtuel : rien d'autre du téléphone ne peut apparaître.
+    /// </summary>
+    public string? OnlyApp { get; init; }
+
     public static MirrorOptions CreateDefault()
     {
         string tools = Path.Combine(AppContext.BaseDirectory, "third_party");

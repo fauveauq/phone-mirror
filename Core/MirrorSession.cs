@@ -21,6 +21,12 @@ public sealed class MirrorSession(MirrorOptions options) : IAsyncDisposable
 
     /// <summary>Canal de contrôle (souris, clavier, presse-papiers) ; null si désactivé ou pas encore connecté.</summary>
     public ScrcpyControlChannel? Control { get; private set; }
+    /// <summary>Écran virtuel du mode « une seule application » ; null sinon ou pas encore créé.</summary>
+    public int? VirtualDisplayId => _server?.VirtualDisplayId;
+
+    /// <summary>Nom affiché de l'application lancée seule, s'il est connu.</summary>
+    public string? AppLabel => _server?.StartedAppLabel;
+
     public long DecodedFrames => Interlocked.Read(ref _decodedFrames);
     public long DecodeErrors => Interlocked.Read(ref _decodeErrors);
 

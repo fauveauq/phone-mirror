@@ -60,6 +60,9 @@ public sealed record UserSettings
     /// </summary>
     public string? UpdateSource { get; init; }
 
+    /// <summary>Paquet Android à afficher seul (démonstrations) ; null pour tout l'écran.</summary>
+    public string? OnlyApp { get; init; }
+
     /// <summary>Position et taille de la fenêtre à la dernière fermeture.</summary>
     public WindowBounds? Window { get; init; }
 
@@ -92,6 +95,7 @@ public sealed record UserSettings
         VideoBitRate = VideoBitRateMbps * 1_000_000,
         MaxFps = MaxFps,
         EnableAudio = EnableAudio,
+        OnlyApp = OnlyApp,
     };
 
     /// <summary>Ramène dans des bornes raisonnables les valeurs d'un fichier modifié à la main.</summary>
@@ -99,6 +103,7 @@ public sealed record UserSettings
     {
         DeviceSerial = string.IsNullOrWhiteSpace(DeviceSerial) ? null : DeviceSerial.Trim(),
         UpdateSource = string.IsNullOrWhiteSpace(UpdateSource) ? null : UpdateSource.Trim(),
+        OnlyApp = string.IsNullOrWhiteSpace(OnlyApp) ? null : OnlyApp.Trim(),
         MaxSize = MaxSize <= 0 ? 0 : Math.Clamp(MaxSize, 320, 4096),
         VideoBitRateMbps = Math.Clamp(VideoBitRateMbps, 1, 100),
         MaxFps = Math.Clamp(MaxFps, 1, 240),
