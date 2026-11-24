@@ -1,10 +1,23 @@
+using System.Text.RegularExpressions;
+
 namespace PhoneMirror.Core;
+
+/// <summary>État de l'écran virtuel vu par l'utilisateur.</summary>
+public enum AppScreenState
+{
+    /// <summary>L'application choisie est affichée et utilisable.</summary>
+    Visible,
+    /// <summary>Une autre application, ou aucune, est au premier plan.</summary>
+    OtherApp,
+    /// <summary>Téléphone en veille ou verrouillé : les clics sont ignorés.</summary>
+    Locked,
+}
 
 /// <summary>
 /// Surveille l'application affichée sur l'écran virtuel (mode « une seule application ») et signale
 /// quand l'application choisie n'est plus au premier plan, pour masquer l'image.
 /// </summary>
-public sealed class AppFocusWatcher : IAsyncDisposable
+public sealed partial class AppFocusWatcher : IAsyncDisposable
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(400);
     private static readonly TimeSpan CommandTimeout = TimeSpan.FromSeconds(5);
@@ -21,10 +34,10 @@ public sealed class AppFocusWatcher : IAsyncDisposable
     private readonly Func<int?> _displayId;
     private readonly CancellationTokenSource _cts = new();
     private readonly Task _loop;
-    private bool? _visible;
+    private AppScreenState? _state;
 
-    /// <summary>true quand l'application choisie est affichée. Déclenché hors du thread de l'interface.</summary>
-    public event Action<bool>? VisibilityChanged;
+    /// <summary>Déclenché à chaque changement d'état, hors du thread de l'interface.</summary>
+    public event Action<AppScreenState>? StateChanged;
 
     public AppFocusWatcher(MirrorOptions options, string package, Func<int?> displayId)
     {
@@ -37,6 +50,22 @@ public sealed class AppFocusWatcher : IAsyncDisposable
     internal static bool IsAppVisible(string? topPackage, string package) =>
         topPackage != null && (topPackage == package || AllowedOverlays.Contains(topPackage));
 
+    /// <summary>
+    /// Déduit l'état de la sortie combinée de dumpsys power, window et activity. En veille ou verrouillé,
+    /// Android ignore les clics même si l'application paraît encore au premier plan.
+    /// </summary>
+    internal static AppScreenState Evaluate(string output, int displayId, string package)
+    {
+        Match wakefulness = WakefulnessRegex().Match(output);
+        if ((wakefulness.Success && wakefulness.Groups[1].Value != "Awake") || output.Contains("isKeyguardShowing=true", StringComparison.Ordinal))
+            return AppScreenState.Locked;
+
+        return IsAppVisible(PhoneApps.TopPackage(output, displayId), package) ? AppScreenState.Visible : AppScreenState.OtherApp;
+    }
+
+    [GeneratedRegex(@"mWakefulness=(\w+)")]
+    private static partial Regex WakefulnessRegex();
+
     private async Task LoopAsync()
     {
         CancellationToken ct = _cts.Token;
@@ -48,12 +77,13 @@ public sealed class AppFocusWatcher : IAsyncDisposable
                 {
                     // Filtré sur le téléphone : la sortie complète de dumpsys est volumineuse.
                     string output = await _adb.RunAsync(CommandTimeout, ct, "shell",
+                        "dumpsys power | grep mWakefulness=; dumpsys window | grep isKeyguardShowing; " +
                         "dumpsys activity activities | grep -E 'Display #|topResumedActivity'").ConfigureAwait(false);
-                    bool visible = IsAppVisible(PhoneApps.TopPackage(output, id), _package);
-                    if (visible != _visible)
+                    AppScreenState state = Evaluate(output, id, _package);
+                    if (state != _state)
                     {
-                        _visible = visible;
-                        VisibilityChanged?.Invoke(visible);
+                        _state = state;
+                        StateChanged?.Invoke(state);
                     }
                 }
                 await Task.Delay(Interval, ct).ConfigureAwait(false);

@@ -76,6 +76,21 @@ public class OnlyAppTests
     }
 
     [Fact]
+    public void Evaluate_reports_a_sleeping_or_locked_phone_before_the_app()
+    {
+        const string app = "com.salesforce.fieldservice.app";
+        const string awake = "  mWakefulness=Awake\n    isKeyguardShowing=false\n";
+        const string dozing = "  mWakefulness=Dozing\n    isKeyguardShowing=true\n";
+        const string lockedAwake = "  mWakefulness=Awake\n    isKeyguardShowing=true\n";
+
+        // En veille, l'application paraît encore au premier plan mais les clics sont ignorés.
+        Assert.Equal(AppScreenState.Locked, AppFocusWatcher.Evaluate(dozing + Dumpsys, 141, app));
+        Assert.Equal(AppScreenState.Locked, AppFocusWatcher.Evaluate(lockedAwake + Dumpsys, 141, app));
+        Assert.Equal(AppScreenState.Visible, AppFocusWatcher.Evaluate(awake + Dumpsys, 141, app));
+        Assert.Equal(AppScreenState.OtherApp, AppFocusWatcher.Evaluate(awake + Dumpsys, 2, app));
+    }
+
+    [Fact]
     public void ParseAppList_keeps_user_apps_with_their_label_sorted_by_name()
     {
         const string output = """

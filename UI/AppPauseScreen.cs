@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using PhoneMirror.Core;
+using PhoneMirror.Input;
 
 namespace PhoneMirror.UI;
 
@@ -19,6 +20,7 @@ public sealed class AppPauseScreen
     private string _package = "";
     private AppFocusWatcher? _watcher;
     private bool _seen;
+    private AppScreenState _state = AppScreenState.OtherApp;
 
     public AppPauseScreen(Border overlay, TextBlock title, TextBlock detail, Button relaunch)
     {
@@ -43,7 +45,7 @@ public sealed class AppPauseScreen
         Show();
 
         _watcher = new AppFocusWatcher(options, package, () => session.VirtualDisplayId);
-        _watcher.VisibilityChanged += visible => _overlay.Dispatcher.InvokeAsync(() => OnVisibilityChanged(visible));
+        _watcher.StateChanged += state => _overlay.Dispatcher.InvokeAsync(() => OnStateChanged(state));
     }
 
     public async Task StopAsync()
@@ -55,10 +57,11 @@ public sealed class AppPauseScreen
         if (watcher != null) await watcher.DisposeAsync();
     }
 
-    private void OnVisibilityChanged(bool visible)
+    private void OnStateChanged(AppScreenState state)
     {
         if (_session == null) return; // session arrêtée entre-temps
-        if (visible)
+        _state = state;
+        if (state == AppScreenState.Visible)
         {
             _seen = true;
             _overlay.Visibility = Visibility.Collapsed;
@@ -72,16 +75,29 @@ public sealed class AppPauseScreen
     private void Show()
     {
         string name = _session?.AppLabel ?? _package;
-        _title.Text = _seen ? "Démonstration en pause" : $"Lancement de {name}…";
-        _detail.Text = _seen
-            ? $"{name} n'est plus affichée. Le reste du téléphone reste masqué."
-            : "Seule cette application sera affichée.";
-        _relaunch.Content = $"Relancer {name}";
+        if (_state == AppScreenState.Locked)
+        {
+            _title.Text = "Téléphone verrouillé";
+            _detail.Text = "Le téléphone est en veille ou verrouillé : il ignore les clics. Déverrouillez-le pour reprendre la démonstration.";
+            _relaunch.Content = "Réveiller le téléphone";
+        }
+        else
+        {
+            _title.Text = _seen ? "Démonstration en pause" : $"Lancement de {name}…";
+            _detail.Text = _seen
+                ? $"{name} n'est plus affichée. Le reste du téléphone reste masqué."
+                : "Seule cette application sera affichée.";
+            _relaunch.Content = $"Relancer {name}";
+        }
         _overlay.Visibility = Visibility.Visible;
     }
 
     private void Relaunch()
     {
-        if (_session?.Control is { } control) control.StartApp(_package);
+        if (_session?.Control is not { } control) return;
+        if (_state == AppScreenState.Locked)
+            control.PressKey(AndroidKeys.Wakeup); // le code PIN éventuel reste à saisir sur le téléphone
+        else
+            control.StartApp(_package);
     }
 }

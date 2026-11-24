@@ -10,6 +10,7 @@ public static class AndroidKeys
     public const int VolumeUp = 24;
     public const int VolumeDown = 25;
     public const int Power = 26;
+    public const int Wakeup = 224;
     public const int Menu = 82;
     public const int AppSwitch = 187;
 

@@ -84,6 +84,10 @@ public sealed class ScrcpyServer(MirrorOptions options, Action<string> log) : IA
             // Écran virtuel à la taille de l'écran du téléphone, sans accueil ni barre système :
             // si l'application se ferme, il reste vide au lieu de montrer autre chose.
             yield return $"new_display={geometry}";
+            // Les clics sur l'écran virtuel ne comptent pas comme une activité pour Android :
+            // sans cela, le téléphone se met en veille puis se verrouille en pleine démonstration.
+            // Le réglage d'origine est rétabli par le serveur en fin de session (cleanup=true).
+            yield return "stay_awake=true";
         }
     }
 
